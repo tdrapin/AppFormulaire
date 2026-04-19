@@ -5,9 +5,9 @@
         <router-link to="/" class="navbar-brand">AppFormulaire</router-link>
         <nav class="navbar-nav ms-auto">
           <router-link to="/" class="nav-link">Accueil</router-link>
-          <router-link to="/builder" class="nav-link">Builder</router-link>
-          <router-link to="/runner" class="nav-link">Runner</router-link>
-          <router-link to="/admin" class="nav-link">Admin</router-link>
+          <router-link to="/builder" class="nav-link">Créateur</router-link>
+          <router-link to="/runner" class="nav-link">Remplisseur</router-link>
+          <router-link to="/admin" class="nav-link">Gestion</router-link>
         </nav>
       </div>
     </header>

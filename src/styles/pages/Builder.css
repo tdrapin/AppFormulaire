@@ -1,0 +1,63 @@
+/* Builder.css - Page créateur de formulaires */
+
+.builder-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-header {
+  text-align: center;
+  padding: 2rem 0;
+  border-bottom: 2px solid #e9ecef;
+  margin-bottom: 2rem;
+}
+
+.section-header h1 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.section-header .lead {
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+.builder-container .card {
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s;
+}
+
+.builder-container .card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.builder-container .card-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.builder-container .form-control,
+.builder-container .form-select {
+  border: 1px solid #ddd;
+  border-radius: 0.375rem;
+}
+
+.builder-container .form-control:focus,
+.builder-container .form-select:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.builder-container .form-label {
+  font-weight: 500;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.builder-container .list-unstyled li {
+  color: #495057;
+}
+
+.builder-container .list-unstyled strong {
+  color: #2c3e50;
+}

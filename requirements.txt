@@ -1,4 +1,0 @@
-# Dépendances Python (optionnel)
-# À utiliser pour scripts de migration BDD, CLI, etc.
-python-dotenv==1.0.0
-requests==2.31.0

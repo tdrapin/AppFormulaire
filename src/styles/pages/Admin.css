@@ -1,0 +1,85 @@
+/* Admin.css - Page gestion et statistiques */
+
+.admin-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.admin-container .section-header {
+  text-align: center;
+  padding: 2rem 0;
+  border-bottom: 2px solid #e9ecef;
+  margin-bottom: 2rem;
+}
+
+.admin-container .section-header h1 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.admin-container .section-header .lead {
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+.admin-container .stats-card {
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.admin-container .stats-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.admin-container .stats-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin: 0.5rem 0;
+}
+
+.admin-container .card {
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s;
+}
+
+.admin-container .card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.admin-container .card-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.admin-container .table-hover tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.admin-container .list-group-item {
+  border-left: 3px solid #e9ecef;
+  padding-left: 1rem;
+  transition: border-left-color 0.2s, background-color 0.2s;
+}
+
+.admin-container .list-group-item:hover {
+  border-left-color: #0d6efd;
+  background-color: #f8f9fa;
+}
+
+.admin-container .list-group-item button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  padding: 0;
+}
+
+.admin-container .list-group-item i {
+  margin-right: 0.5rem;
+  color: #6c757d;
+}

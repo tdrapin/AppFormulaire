@@ -7,7 +7,7 @@
       <div class="col-md-4">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Form Builder</h5>
+            <h5 class="card-title">Créateur de formulaires</h5>
             <p class="card-text">Créez et éditez vos formulaires</p>
             <router-link to="/builder" class="btn btn-primary">Accéder</router-link>
           </div>
@@ -17,7 +17,7 @@
       <div class="col-md-4">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Form Runner</h5>
+            <h5 class="card-title">Remplisseur de formulaires</h5>
             <p class="card-text">Remplissez les formulaires</p>
             <router-link to="/runner" class="btn btn-primary">Accéder</router-link>
           </div>
@@ -40,20 +40,3 @@
 <script setup lang="ts">
 // Home page
 </script>
-
-<style scoped>
-.home {
-  text-align: center;
-}
-
-.card {
-  height: 100%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-</style>

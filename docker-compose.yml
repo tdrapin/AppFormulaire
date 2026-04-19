@@ -1,18 +1,11 @@
-version: '3.9'
-
 services:
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: appformulaire-web
+    build: .
     ports:
       - "5173:5173"
-    volumes:
-      - ./:/app
-      - /app/node_modules
     environment:
-      NODE_ENV: development
-      VITE_SUPABASE_URL: http://localhost:54321
-      VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWluLWRldiIsInJvbGUiOiJhbm9uIiwiaWF0IjogMTY4ODczNjQwMCwiZXhwIjogMTk5OTk5OTk5OX0.test-key-dev
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - .:/app
+      - /app/node_modules
     command: npm run dev -- --host 0.0.0.0 --port 5173
