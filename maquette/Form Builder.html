@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un Formulaire - Éditeur</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+        }
+
+        /* ========== HEADER ========== */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.5px;
+        }
+
+        .form-name-input {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 300px;
+            transition: all 0.3s ease;
+        }
+
+        .form-name-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+
+        .form-name-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-header {
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-preview {
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-preview:hover {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-publish {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-publish:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+        }
+
+        /* ========== MAIN LAYOUT ========== */
+        .main {
+            display: flex;
+            margin-top: 70px;
+            height: calc(100vh - 70px);
+        }
+
+        /* ========== SIDEBAR - PALETTE ========== */
+        .sidebar-palette {
+            width: 280px;
+            background: #1f2937;
+            border-right: 1px solid #EAGEAE;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .palette-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            margin-top: 16px;
+        }
+
+        .palette-title:first-child {
+            margin-top: 0;
+        }
+
+        .field-button {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(102, 126, 234, 0.08);
+            color: #667eea;
+            border: 1px solid rgba(102, 126, 234, 0.15);
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .field-button:hover {
+            background: rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.3);
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.12);
+        }
+
+        .field-icon {
+            font-size: 16px;
+            width: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ========== CENTER - CANVAS ========== */
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .canvas-toolbar {
+            background: white;
+            border-bottom: 1px solid #e0e3e8;
+            padding: 12px 24px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .canvas-toolbar-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .canvas-toolbar-group:not(:first-child) {
+            border-left: 1px solid #e0e3e8;
+            padding-left: 16px;
+        }
+
+        .toolbar-btn {
+            width: 36px;
+            height: 36px;
+            background: white;
+            border: 1px solid #d0d7e0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toolbar-btn:hover {
+            background-color: #f3f4f6;
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .canvas {
+            flex: 1;
+            background: #f9fafb;
+            overflow-y: auto;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .form-canvas {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 700px;
+            padding: 30px;
+            min-height: 400px;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.08);
+        }
+
+        .form-canvas-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1a1f36;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            letter-spacing: -0.5px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .canvas-section {
+            margin-bottom: 30px;
+        }
+
+        .canvas-section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            letter-spacing: -0.2px;
+            border-bottom: 1px solid #e5e7eb;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        .canvas-field {
+            background: #f9fbff;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .canvas-field:hover {
+            background: white;
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+
+        .canvas-field.selected {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .canvas-field-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1a1f36;
+            margin-bottom: 8px;
+            letter-spacing: -0.2px;
+        }
+
+        .canvas-field-required {
+            color: #ef4444;
+            margin-left: 4px;
+        }
+
+        .canvas-field-input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            font-size: 12px;
+            background: white;
+            pointer-events: none;
+            color: #9ca3af;
+        }
+
+        .canvas-field-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .canvas-field:hover .canvas-field-actions {
+            opacity: 1;
+        }
+
+        .field-action-btn {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(102, 126, 234, 0.15);
+        }
+
+        .field-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.25);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 40px;
+            color: #9ca3af;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 14px;
+        }
+
+        /* ========== SIDEBAR - PROPERTIES ========== */
+        .sidebar-properties {
+            width: 300px;
+            background: #f9fafb;
+            border-left: 1px solid #e5e7eb;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .properties-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #667eea;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .property-group {
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .property-group:last-child {
+            border-bottom: none;
+        }
+
+        .property-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .property-input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #1a1f36;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .property-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .property-select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #1a1f36;
+            background: white;
+        }
+
+        .checkbox-property {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-property input {
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .checkbox-property label {
+            font-size: 12px;
+            cursor: pointer;
+            color: #1a1f36;
+            font-weight: 600;
+        }
+
+        .no-selection {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1200px) {
+            .sidebar-palette {
+                width: 220px;
+            }
+
+            .sidebar-properties {
+                width: 250px;
+            }
+
+            .form-canvas {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main {
+                flex-direction: column;
+            }
+
+            .sidebar-palette,
+            .sidebar-properties {
+                width: 100%;
+                height: auto;
+                max-height: 200px;
+                border: none;
+            }
+
+            .sidebar-palette {
+                border-bottom: 1px solid #e0e3e8;
+            }
+
+            .canvas-area {
+                flex: 1;
+            }
+
+            .form-name-input {
+                width: 150px;
+            }
+
+            .header-actions {
+                gap: 8px;
+            }
+
+            .header {
+                padding: 0 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo">FORMULAIRES</div>
+        <input type="text" class="form-name-input" placeholder="Nom du formulaire..." value="Véhicule - Test exceptionnelle">
+        <div class="header-actions">
+            <button class="btn-header btn-preview">Aperçu</button>
+            <button class="btn-header btn-publish">Publier</button>
+        </div>
+    </header>
+
+    <!-- MAIN LAYOUT -->
+    <div class="main">
+
+        <!-- SIDEBAR LEFT - PALETTE -->
+        <aside class="sidebar-palette">
+            <div class="palette-title">Champs de texte</div>
+            <button class="field-button" onclick="addField('text')">
+                <span>Texte court</span>
+            </button>
+            <button class="field-button" onclick="addField('textarea')">
+                <span>Zone texte</span>
+            </button>
+
+            <div class="palette-title">Champs numériques</div>
+            <button class="field-button" onclick="addField('number')">
+                <span>Nombre</span>
+            </button>
+            <button class="field-button" onclick="addField('date')">
+                <span>Date</span>
+            </button>
+
+            <div class="palette-title">Champs à choix</div>
+            <button class="field-button" onclick="addField('select')">
+                <span>Liste déroulante</span>
+            </button>
+            <button class="field-button" onclick="addField('radio')">
+                <span>Boutons radio</span>
+            </button>
+            <button class="field-button" onclick="addField('checkbox')">
+                <span>Case à cocher</span>
+            </button>
+
+            <div class="palette-title">Organisation</div>
+            <button class="field-button" onclick="addField('section')">
+                <span>Section</span>
+            </button>
+        </aside>
+
+        <!-- CENTER - CANVAS -->
+        <div class="canvas-area">
+
+            <!-- TOOLBAR -->
+            <div class="canvas-toolbar">
+                <div class="canvas-toolbar-group">
+                    <button class="toolbar-btn" title="Annuler">↶</button>
+                    <button class="toolbar-btn" title="Refaire">↷</button>
+                </div>
+                <div class="canvas-toolbar-group">
+                    <button class="toolbar-btn" title="Copier"><i class="fas fa-copy"></i></button>
+                    <button class="toolbar-btn" title="Coller"><i class="fas fa-paste"></i></button>
+                    <button class="toolbar-btn" title="Supprimer"><i class="fas fa-trash"></i></button>
+                </div>
+                <div class="canvas-toolbar-group">
+                    <button class="toolbar-btn" title="Réinitialiser"><i class="fas fa-undo"></i></button>
+                    <button class="toolbar-btn" title="Paramètres"><i class="fas fa-cog"></i></button>
+                </div>
+            </div>
+
+            <!-- CANVAS -->
+            <div class="canvas">
+                <div class="form-canvas">
+                    <h1 class="form-canvas-title">Inscription Véhicule - Test exceptionnelle</h1>
+
+                    <!-- Section Information Personnelle -->
+                    <div class="canvas-section">
+                        <div class="canvas-section-title">Information Personnelle</div>
+
+                        <!-- Champ: Nom -->
+                        <div class="canvas-field selected">
+                            <div class="canvas-field-label">Nom complet <span class="canvas-field-required">*</span></div>
+                            <input type="text" class="canvas-field-input" placeholder="Entrez votre nom complet">
+                            <div class="canvas-field-actions">
+                                <button class="field-action-btn" title="Éditer"><i class="fas fa-edit"></i></button>
+                                <button class="field-action-btn" title="Dupliquer"><i class="fas fa-copy"></i></button>
+                                <button class="field-action-btn" title="Supprimer"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Champ: Email -->
+                        <div class="canvas-field">
+                            <div class="canvas-field-label">Adresse e-mail <span class="canvas-field-required">*</span></div>
+                            <input type="email" class="canvas-field-input" placeholder="votre.email@exemple.com">
+                            <div class="canvas-field-actions">
+                                <button class="field-action-btn" title="Éditer"><i class="fas fa-edit"></i></button>
+                                <button class="field-action-btn" title="Dupliquer"><i class="fas fa-copy"></i></button>
+                                <button class="field-action-btn" title="Supprimer"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Champ: Téléphone -->
+                        <div class="canvas-field">
+                            <div class="canvas-field-label">Numéro de téléphone</div>
+                            <input type="tel" class="canvas-field-input" placeholder="+33 6 XX XX XX XX">
+                            <div class="canvas-field-actions">
+                                <button class="field-action-btn" title="Éditer">✎</button>
+                                <button class="field-action-btn" title="Dupliquer">⎘</button>
+                                <button class="field-action-btn" title="Supprimer">✕</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section Informations Véhicule -->
+                    <div class="canvas-section">
+                        <div class="canvas-section-title">🚗 Informations Véhicule</div>
+
+                        <!-- Champ: Marque -->
+                        <div class="canvas-field">
+                            <div class="canvas-field-label">Marque du véhicule <span class="canvas-field-required">*</span></div>
+                            <input type="text" class="canvas-field-input" placeholder="Ex: Peugeot, Renault...">
+                            <div class="canvas-field-actions">
+                                <button class="field-action-btn" title="Éditer">✎</button>
+                                <button class="field-action-btn" title="Dupliquer">⎘</button>
+                                <button class="field-action-btn" title="Supprimer">✕</button>
+                            </div>
+                        </div>
+
+                        <!-- Champ: Date de mise en circulation -->
+                        <div class="canvas-field">
+                            <div class="canvas-field-label">Date de mise en circulation <span class="canvas-field-required">*</span></div>
+                            <input type="date" class="canvas-field-input">
+                            <div class="canvas-field-actions">
+                                <button class="field-action-btn" title="Éditer">✎</button>
+                                <button class="field-action-btn" title="Dupliquer">⎘</button>
+                                <button class="field-action-btn" title="Supprimer">✕</button>
+                            </div>
+                        </div>
+
+                        <!-- Champ: Kilométrage -->
+                        <div class="canvas-field">
+                            <div class="canvas-field-label">Kilométrage (km)</div>
+                            <input type="number" class="canvas-field-input" placeholder="0">
+                            <div class="canvas-field-actions">
+                                <button class="field-action-btn" title="Éditer"><i class="fas fa-edit"></i></button>
+                                <button class="field-action-btn" title="Dupliquer"><i class="fas fa-copy"></i></button>
+                                <button class="field-action-btn" title="Supprimer"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Champ: Carburant -->
+                        <div class="canvas-field">
+                            <div class="canvas-field-label">Type de carburant</div>
+                            <select class="canvas-field-input">
+                                <option>Essence</option>
+                                <option>Diesel</option>
+                                <option>Électrique</option>
+                                <option>Hybride</option>
+                            </select>
+                            <div class="canvas-field-actions">
+                                <button class="field-action-btn" title="Éditer"><i class="fas fa-edit"></i></button>
+                                <button class="field-action-btn" title="Dupliquer"><i class="fas fa-copy"></i></button>
+                                <button class="field-action-btn" title="Supprimer"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section État Véhicule -->
+                    <div class="canvas-section">
+                        <div class="canvas-section-title">✓ État Véhicule</div>
+
+                        <!-- Champ: Bon état -->
+                        <div class="canvas-field">
+                            <div class="canvas-field-label">Le véhicule est en bon état</div>
+                            <div style="display: flex; gap: 16px; margin-top: 8px;">
+                                <label style="display: flex; align-items: center; gap: 6px;">
+                                    <input type="radio" name="etat"> Oui
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px;">
+                                    <input type="radio" name="etat"> Non
+                                </label>
+                            </div>
+                            <div class="canvas-field-actions">
+                                <button class="field-action-btn" title="Éditer">✎</button>
+                                <button class="field-action-btn" title="Dupliquer">⎗</button>
+                                <button class="field-action-btn" title="Supprimer">×</button>
+                            </div>
+                        </div>
+
+                        <!-- Champ: Équipements -->
+                        <div class="canvas-field">
+                            <div class="canvas-field-label">Équipements présents</div>
+                            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+                                <label style="display: flex; align-items: center; gap: 6px;">
+                                    <input type="checkbox"> Climatisation
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px;">
+                                    <input type="checkbox"> Toit ouvrant
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px;">
+                                    <input type="checkbox"> GPS
+                                </label>
+                            </div>
+                            <div class="canvas-field-actions">
+                                <button class="field-action-btn" title="Éditer"><i class="fas fa-edit"></i></button>
+                                <button class="field-action-btn" title="Dupliquer"><i class="fas fa-copy"></i></button>
+                                <button class="field-action-btn" title="Supprimer"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section Observations -->
+                    <div class="canvas-section">
+                        <div class="canvas-section-title">Observations</div>
+
+                        <!-- Champ: Remarques -->
+                        <div class="canvas-field">
+                            <div class="canvas-field-label">Remarques supplémentaires</div>
+                            <textarea class="canvas-field-input" style="min-height: 80px; resize: vertical;" placeholder="Décrivez toute information supplémentaire..."></textarea>
+                            <div class="canvas-field-actions">
+                                <button class="field-action-btn" title="Éditer"><i class="fas fa-edit"></i></button>
+                                <button class="field-action-btn" title="Dupliquer"><i class="fas fa-copy"></i></button>
+                                <button class="field-action-btn" title="Supprimer"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #667eea;">
+                        <button style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2); transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 6px 16px rgba(102, 126, 234, 0.3)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.2)'; this.style.transform='translateY(0)';">Soumettre le formulaire</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR RIGHT - PROPERTIES -->
+        <aside class="sidebar-properties">
+            <div class="properties-title">Propriétés du champ</div>
+
+            <div class="property-group">
+                <div class="property-label">Nom du champ</div>
+                <input type="text" class="property-input" value="Nom complet" placeholder="Nom du champ">
+            </div>
+
+            <div class="property-group">
+                <div class="property-label">Label (Étiquette)</div>
+                <input type="text" class="property-input" value="Nom complet" placeholder="Texte à afficher">
+            </div>
+
+            <div class="property-group">
+                <div class="property-label">Placeholder</div>
+                <input type="text" class="property-input" value="Entrez votre nom complet" placeholder="Texte d'aide">
+            </div>
+
+            <div class="property-group">
+                <div class="property-label">Type de champ</div>
+                <select class="property-select">
+                    <option>Texte court</option>
+                    <option>Zone texte</option>
+                    <option>Nombre</option>
+                    <option>Date</option>
+                    <option>Email</option>
+                    <option>Liste déroulante</option>
+                </select>
+            </div>
+
+            <div class="property-group">
+                <div class="checkbox-property">
+                    <input type="checkbox" id="required-checkbox" checked>
+                    <label for="required-checkbox">Champ obligatoire</label>
+                </div>
+            </div>
+
+            <div class="property-group">
+                <div class="checkbox-property">
+                    <input type="checkbox" id="visible-checkbox" checked>
+                    <label for="visible-checkbox">Visible</label>
+                </div>
+            </div>
+
+            <div class="property-group">
+                <div class="property-label">Largeur</div>
+                <select class="property-select">
+                    <option>100% (Pleine largeur)</option>
+                    <option>50% (Demi-largeur)</option>
+                    <option>33% (Tiers)</option>
+                </select>
+            </div>
+
+            <div class="property-group">
+                <div class="property-label">Aide (description)</div>
+                <textarea class="property-input" placeholder="Texte d'aide pour l'utilisateur" style="resize: vertical; min-height: 60px;"></textarea>
+            </div>
+
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                <button style="width: 100%; padding: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15); transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.25)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.boxShadow='0 2px 8px rgba(102, 126, 234, 0.15)'; this.style.transform='translateY(0)';">Mettre à jour</button>
+                <button style="width: 100%; padding: 10px; margin-top: 8px; background: #f3f4f6; color: #1a1f36; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#e5e7eb';" onmouseout="this.style.backgroundColor='#f3f4f6';">Annuler</button>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // Gestion de la sélection des champs
+        document.querySelectorAll('.canvas-field').forEach(field => {
+            field.addEventListener('click', function(e) {
+                if (!e.target.closest('.field-action-btn')) {
+                    document.querySelectorAll('.canvas-field').forEach(f => f.classList.remove('selected'));
+                    this.classList.add('selected');
+                }
+            });
+        });
+
+        // Gestion des boutons d'action
+        document.querySelectorAll('.field-action-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (this.title === 'Supprimer') {
+                    this.closest('.canvas-field').remove();
+                }
+            });
+        });
+
+        // Ajout de champ depuis la palette
+        function addField(type) {
+            const fieldTemplate = document.createElement('div');
+            fieldTemplate.className = 'canvas-field';
+            fieldTemplate.innerHTML = `
+                <div class="canvas-field-label">Nouveau champ <span class="canvas-field-required">*</span></div>
+                <input type="text" class="canvas-field-input" placeholder="Champ ajouté">
+                <div class="canvas-field-actions">
+                    <button class="field-action-btn" title="Éditer">✎</button>
+                    <button class="field-action-btn" title="Dupliquer">⎘</button>
+                    <button class="field-action-btn" title="Supprimer">✕</button>
+                </div>
+            `;
+
+            document.querySelector('.form-canvas').appendChild(fieldTemplate);
+
+            // Ajouter les événements au nouveau champ
+            fieldTemplate.addEventListener('click', function(e) {
+                if (!e.target.closest('.field-action-btn')) {
+                    document.querySelectorAll('.canvas-field').forEach(f => f.classList.remove('selected'));
+                    this.classList.add('selected');
+                }
+            });
+
+            fieldTemplate.querySelectorAll('.field-action-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (this.title === 'Supprimer') {
+                        this.closest('.canvas-field').remove();
+                    }
+                });
+            });
+        }
+
+        // Affichage d'une notification lors de la publication
+        document.querySelector('.btn-publish').addEventListener('click', function() {
+            alert('Formulaire publié avec succès !');
+        });
+
+        // Aperçu
+        document.querySelector('.btn-preview').addEventListener('click', function() {
+            alert('Fonction d\'aperçu en cours de développement...');
+        });
+    </script>
+</body>
+</html>

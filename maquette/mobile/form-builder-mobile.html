@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un Formulaire - Mobile</title>    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #f1f4f8 100%);
+            color: #1a1f36;
+            width: 100vw;
+            overflow-x: hidden;
+        }
+
+        /* ========== HEADER ========== */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.5px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .menu-toggle {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            font-size: 24px;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+        }
+
+        .menu-toggle:active {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(0.95);
+        }
+
+        .btn-publish-mobile {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-publish-mobile:active {
+            transform: scale(0.95);
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            margin-top: 64px;
+            padding: 20px;
+            padding-bottom: 20px;
+        }
+
+        .form-title-input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            background: white;
+            letter-spacing: -0.3px;
+        }
+
+        .form-title-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* ========== CANVAS ========== */
+        .canvas-mobile {
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            min-height: calc(100vh - 150px);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .form-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1a1f36;
+            margin-bottom: 24px;
+            padding-bottom: 14px;
+            border-bottom: 3px solid #667eea;
+            letter-spacing: -0.5px;
+        }
+
+        .canvas-section {
+            margin-bottom: 28px;
+        }
+
+        .canvas-section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1f36;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f2f7;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .canvas-field {
+            background: #f9fbff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .canvas-field:active {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.12);
+        }
+
+        .canvas-field-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1a1f36;
+            margin-bottom: 8px;
+            letter-spacing: -0.2px;
+        }
+
+        .canvas-field-required {
+            color: #ef4444;
+            font-weight: 800;
+        }
+
+        .canvas-field-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            pointer-events: none;
+            color: #9ca3af;
+        }
+
+        .canvas-field-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            justify-content: flex-end;
+        }
+
+        .field-action-btn-mobile {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .field-action-btn-mobile:active {
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            transform: scale(0.9);
+        }
+
+        /* ========== BOTTOM SHEET MENU ========== */
+        .bottom-sheet {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            max-height: 80vh;
+            overflow-y: auto;
+            transition: bottom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 900;
+            box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        .bottom-sheet.active {
+            bottom: 0;
+        }
+
+        .sheet-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 16px;
+        }
+
+        .sheet-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sheet-content {
+            padding: 24px;
+        }
+
+        .palette-section {
+            margin-bottom: 28px;
+        }
+
+        .palette-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 14px;
+        }
+
+        .field-button-mobile {
+            width: 100%;
+            padding: 16px;
+            background: #f9fbff;
+            color: #1a1f36;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .field-button-mobile:active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+            transform: scale(0.98);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .field-icon {
+            font-size: 20px;
+        }
+
+        /* ========== TOOLBAR BOTTOM ========== */
+        .toolbar-mobile {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #f0f2f7;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            gap: 8px;
+            z-index: 500;
+            box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05);
+        }
+
+        .toolbar-btn-mobile {
+            flex: 1;
+            padding: 12px;
+            background: #f9fbff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            color: #667eea;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .toolbar-btn-mobile:active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+            transform: scale(0.95);
+        }
+
+        .toolbar-icon {
+            font-size: 18px;
+        }
+
+        /* ========== MODAL ========== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 14px;
+            padding: 0;
+            max-width: 380px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1f36;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0f2f7;
+            letter-spacing: -0.3px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #9ca3af;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            border-top: 1px solid #f0f2f7;
+        }
+
+        .btn-modal {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .btn-save:active {
+            transform: scale(0.95);
+        }
+
+        .btn-cancel {
+            background: #f0f2f7;
+            color: #667eea;
+        }
+
+        .btn-cancel:active {
+            background: #e5e7eb;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 480px) {
+            .header {
+                height: 56px;
+                padding: 0 16px;
+            }
+
+            .logo {
+                font-size: 16px;
+            }
+
+            .main-content {
+                margin-top: 56px;
+                padding: 16px;
+            }
+
+            .canvas-mobile {
+                padding: 16px;
+                min-height: calc(100vh - 140px);
+            }
+
+            .toolbar-mobile {
+                padding: 10px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo">FORMULAIRES</div>
+        <div class="header-right">
+            <button class="menu-toggle" id="menuToggle"><i class="fas fa-plus"></i></button>
+            <button class="btn-publish-mobile" id="publishBtn">Publier</button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <input type="text" class="form-title-input" id="formTitle" placeholder="Nom du formulaire..." value="Inscription Véhicule">
+        <div class="canvas-mobile">
+            <h1 class="form-title" id="formPreview">Inscription Véhicule</h1>
+
+            <!-- Section Information Personnelle -->
+            <div class="canvas-section">
+                <div class="canvas-section-title">Information Personnelle</div>
+
+                <div class="canvas-field">
+                    <div class="canvas-field-label">Nom complet <span class="canvas-field-required">*</span></div>
+                    <input type="text" class="canvas-field-input" placeholder="Entrez votre nom">
+                    <div class="canvas-field-actions">
+                        <button class="field-action-btn-mobile" title="Éditer">✎</button>
+                        <button class="field-action-btn-mobile" title="Supprimer">✕</button>
+                    </div>
+                </div>
+
+                <div class="canvas-field">
+                    <div class="canvas-field-label">Email <span class="canvas-field-required">*</span></div>
+                    <input type="email" class="canvas-field-input" placeholder="email@exemple.com">
+                    <div class="canvas-field-actions">
+                        <button class="field-action-btn-mobile" title="Éditer">✎</button>
+                        <button class="field-action-btn-mobile" title="Supprimer">✕</button>
+                    </div>
+                </div>
+
+                <div class="canvas-field">
+                    <div class="canvas-field-label">Téléphone</div>
+                    <input type="tel" class="canvas-field-input" placeholder="+33 6 XX XX XX XX">
+                    <div class="canvas-field-actions">
+                        <button class="field-action-btn-mobile" title="Éditer">✎</button>
+                        <button class="field-action-btn-mobile" title="Supprimer">✕</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Véhicule -->
+            <div class="canvas-section">
+                <div class="canvas-section-title">🚗 Véhicule</div>
+
+                <div class="canvas-field">
+                    <div class="canvas-field-label">Marque <span class="canvas-field-required">*</span></div>
+                    <input type="text" class="canvas-field-input" placeholder="Ex: Peugeot">
+                    <div class="canvas-field-actions">
+                        <button class="field-action-btn-mobile" title="Éditer">✎</button>
+                        <button class="field-action-btn-mobile" title="Supprimer">✕</button>
+                    </div>
+                </div>
+
+                <div class="canvas-field">
+                    <div class="canvas-field-label">Date intro <span class="canvas-field-required">*</span></div>
+                    <input type="date" class="canvas-field-input">
+                    <div class="canvas-field-actions">
+                        <button class="field-action-btn-mobile" title="Éditer">✎</button>
+                        <button class="field-action-btn-mobile" title="Supprimer">✕</button>
+                    </div>
+                </div>
+
+                <div class="canvas-field">
+                    <div class="canvas-field-label">Carburant</div>
+                    <select style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                        <option>Essence</option>
+                        <option>Diesel</option>
+                        <option>Électrique</option>
+                        <option>Hybride</option>
+                    </select>
+                    <div class="canvas-field-actions">
+                        <button class="field-action-btn-mobile" title="Éditer">✎</button>
+                        <button class="field-action-btn-mobile" title="Supprimer">✕</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Observations -->
+            <div class="canvas-section">
+                <div class="canvas-section-title">📝 Observations</div>
+
+                <div class="canvas-field">
+                    <div class="canvas-field-label">Remarques</div>
+                    <textarea style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; min-height: 80px; resize: vertical;" placeholder="Notes supplémentaires..."></textarea>
+                    <div class="canvas-field-actions">
+                        <button class="field-action-btn-mobile" title="Éditer">✎</button>
+                        <button class="field-action-btn-mobile" title="Supprimer">✕</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM SHEET - PALETTE -->
+    <div class="bottom-sheet" id="bottomSheet">
+        <div class="sheet-header">
+            Ajouter un champ
+            <button class="sheet-close" id="sheetClose">✕</button>
+        </div>
+        <div class="sheet-content">
+            <div class="palette-section">
+                <div class="palette-title">Texte</div>
+                <button class="field-button-mobile" onclick="addField('text')">
+                    <span class="field-icon">📝</span>
+                    <span>Texte court</span>
+                </button>
+                <button class="field-button-mobile" onclick="addField('textarea')">
+                    <span class="field-icon">📄</span>
+                    <span>Zone texte</span>
+                </button>
+            </div>
+
+            <div class="palette-section">
+                <div class="palette-title">Choix</div>
+                <button class="field-button-mobile" onclick="addField('select')">
+                    <span class="field-icon">📋</span>
+                    <span>Liste déroulante</span>
+                </button>
+                <button class="field-button-mobile" onclick="addField('radio')">
+                    <span class="field-icon">🔘</span>
+                    <span>Boutons radio</span>
+                </button>
+                <button class="field-button-mobile" onclick="addField('checkbox')">
+                    <span class="field-icon">☑️</span>
+                    <span>Case à cocher</span>
+                </button>
+            </div>
+
+            <div class="palette-section">
+                <div class="palette-title">Autre</div>
+                <button class="field-button-mobile" onclick="addField('number')">
+                    <span class="field-icon">🔢</span>
+                    <span>Nombre</span>
+                </button>
+                <button class="field-button-mobile" onclick="addField('date')">
+                    <span class="field-icon">📅</span>
+                    <span>Date</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOOLBAR BOTTOM -->
+    <div class="toolbar-mobile">
+        <button class="toolbar-btn-mobile" id="undoBtn" title="Annuler">
+            <span class="toolbar-icon">↶</span>
+            <span>Annuler</span>
+        </button>
+        <button class="toolbar-btn-mobile" id="duplicateBtn" title="Dupliquer">
+            <span class="toolbar-icon">⎘</span>
+            <span>Dupliquer</span>
+        </button>
+        <button class="toolbar-btn-mobile" id="deleteBtn" title="Supprimer">
+            <span class="toolbar-icon">🗑️</span>
+            <span>Supprimer</span>
+        </button>
+    </div>
+
+    <!-- MODAL EDIT FIELD -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                Éditer le champ
+                <button class="modal-close" id="modalClose">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Étiquette</label>
+                    <input type="text" class="form-input" id="fieldLabel" placeholder="Texte à afficher">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Placeholder</label>
+                    <input type="text" class="form-input" id="fieldPlaceholder" placeholder="Texte d'aide">
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #1a1f36;">
+                        <input type="checkbox" id="fieldRequired">
+                        <span>Obligatoire</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-save" id="modalSave">Enregistrer</button>
+                <button class="btn-modal btn-cancel" id="modalCancel">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Menu toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const bottomSheet = document.getElementById('bottomSheet');
+        const sheetClose = document.getElementById('sheetClose');
+
+        menuToggle.addEventListener('click', () => {
+            bottomSheet.classList.add('active');
+        });
+
+        sheetClose.addEventListener('click', () => {
+            bottomSheet.classList.remove('active');
+        });
+
+        // Update title preview
+        const titleInput = document.getElementById('formTitle');
+        const titlePreview = document.getElementById('formPreview');
+
+        titleInput.addEventListener('input', (e) => {
+            titlePreview.textContent = e.target.value || 'Nouveau formulaire';
+        });
+
+        // Field selection and actions
+        let selectedField = null;
+
+        document.querySelectorAll('.canvas-field').forEach(field => {
+            field.addEventListener('click', function(e) {
+                if (!e.target.closest('.field-action-btn-mobile')) {
+                    selectedField = this;
+                }
+            });
+        });
+
+        // Edit button
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.field-action-btn-mobile') && e.target.textContent === '✎') {
+                const field = e.target.closest('.canvas-field');
+                selectedField = field;
+                const label = field.querySelector('.canvas-field-label').textContent.replace(' *', '');
+                const input = field.querySelector('input, textarea');
+                document.getElementById('fieldLabel').value = label;
+                document.getElementById('fieldPlaceholder').value = input?.placeholder || '';
+                document.getElementById('editModal').classList.add('active');
+            }
+        });
+
+        // Delete button
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.field-action-btn-mobile') && e.target.textContent === '✕') {
+                e.stopPropagation();
+                e.target.closest('.canvas-field').remove();
+            }
+        });
+
+        // Modal controls
+        document.getElementById('modalClose').addEventListener('click', () => {
+            document.getElementById('editModal').classList.remove('active');
+        });
+
+        document.getElementById('modalCancel').addEventListener('click', () => {
+            document.getElementById('editModal').classList.remove('active');
+        });
+
+        document.getElementById('modalSave').addEventListener('click', () => {
+            if (selectedField) {
+                const label = document.getElementById('fieldLabel').value;
+                selectedField.querySelector('.canvas-field-label').textContent = label + ' *';
+                const input = selectedField.querySelector('input, textarea');
+                if (input) input.placeholder = document.getElementById('fieldPlaceholder').value;
+            }
+            document.getElementById('editModal').classList.remove('active');
+        });
+
+        // Toolbar buttons
+        document.getElementById('publishBtn').addEventListener('click', () => {
+            alert('Formulaire publié avec succès !');
+        });
+
+        document.getElementById('undoBtn').addEventListener('click', () => {
+            alert('Annuler (historique bientôt disponible)');
+        });
+
+        document.getElementById('deleteBtn').addEventListener('click', () => {
+            if (selectedField) {
+                selectedField.remove();
+                selectedField = null;
+            }
+        });
+
+        // Add field function
+        function addField(type) {
+            const newField = document.createElement('div');
+            newField.className = 'canvas-field';
+            
+            let inputHTML = '';
+            switch(type) {
+                case 'textarea':
+                    inputHTML = '<textarea style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;" placeholder="Texte..."></textarea>';
+                    break;
+                case 'date':
+                    inputHTML = '<input type="date" class="canvas-field-input">';
+                    break;
+                case 'number':
+                    inputHTML = '<input type="number" class="canvas-field-input" placeholder="0">';
+                    break;
+                default:
+                    inputHTML = '<input type="text" class="canvas-field-input" placeholder="Réponse...">';
+            }
+
+            newField.innerHTML = `
+                <div class="canvas-field-label">Nouveau champ <span class="canvas-field-required">*</span></div>
+                ${inputHTML}
+                <div class="canvas-field-actions">
+                    <button class="field-action-btn-mobile" title="Éditer">✎</button>
+                    <button class="field-action-btn-mobile" title="Supprimer">✕</button>
+                </div>
+            `;
+
+            document.querySelector('.canvas-mobile').appendChild(newField);
+            bottomSheet.classList.remove('active');
+        }
+    </script>
+
+</body>
+</html>
