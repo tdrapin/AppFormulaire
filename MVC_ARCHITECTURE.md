@@ -1,106 +1,103 @@
-# Architecture MVC de AppFormulaire
+# Architecture de AppFormulaire (version projet)
 
-## Structure du projet
+## Objectif
+AppFormulaire est une application **mobile-first** qui permet :
+- de définir des formulaires en JSON,
+- de saisir des données terrain,
+- de générer un document final HTML puis PDF.
+
+Cette architecture sert de référence pour l’implémentation dans le dépôt.
+
+---
+
+## Organisation du code (proposée)
 
 ```
 src/
-├── lib/                                (MODEL)
-│   ├── models/                         - Classes de modèles de données
-│   │   ├── Form.js                     - Modèle formulaire
-│   │   ├── FormField.js                - Modèle champ de formulaire
-│   │   └── FormResponse.js             - Modèle réponse à formulaire
+├── lib/                              (données + services)
+│   ├── models/                       - modèles métiers
+│   │   ├── Form.js                    - modèle formulaire
+│   │   ├── FormField.js               - modèle champ
+│   │   ├── FormTemplate.js            - modèle gabarit
+│   │   └── FormInstance.js            - modèle instance
 │   │
-│   ├── services/                       - Logique métier (Contrôleurs)
-│   │   ├── FormService.js              - Service de gestion des formulaires
-│   │   └── ResponseService.js          - Service de gestion des réponses
+│   ├── services/                     - logique applicative
+│   │   ├── FormService.js             - CRUD formulaires
+│   │   ├── TemplateService.js         - CRUD gabarits
+│   │   ├── InstanceService.js         - CRUD instances
+│   │   ├── RenderService.js           - Mustache + HTML
+│   │   └── PdfService.js              - export PDF
 │   │
-│   └── utils/                          - Fonctions utilitaires
-│       ├── validators.js               - Validateurs (email, téléphone, etc.)
-│       └── dateHelper.js               - Formatage et manipulation de dates
+│   └── utils/                        - helpers
+│       ├── validators.js             - validations simples
+│       └── dateHelper.js             - formats date
 │
-├── components/                         (VIEW - Composants réutilisables)
-│   └── HelloWorld.vue                  - Composants réutilisables
+├── components/                       (éléments UI réutilisables)
+│   ├── MobileHeader.vue
+│   ├── MobileFooter.vue
+│   ├── FieldInput.vue
+│   └── SectionCard.vue
 │
-├── pages/                              (VIEW - Pages principales)
-│   ├── Home.vue                        - Accueil
-│   ├── Builder.vue                     - Création de formulaires
-│   ├── Runner.vue                      - Remplissage de formulaires
-│   ├── Admin.vue                       - Gestion et statistiques
-│   └── NotFound.vue                    - Page 404
+├── pages/                            (écrans principaux)
+│   ├── Home.vue                      - liste formulaires
+│   ├── Builder.vue                   - création formulaire
+│   ├── Runner.vue                    - saisie instance
+│   ├── Summary.vue                   - résumé + rendu
+│   └── History.vue                   - historique des rapports
 │
 ├── router/
-│   └── index.js                        - Configuration des routes
+│   └── index.js
 │
 ├── styles/
-│   └── main.css                        - Feuilles de style globales
+│   └── main.css
 │
-├── assets/                             - Ressources (images, icônes, etc.)
-│
-├── App.vue                             - Composant racine (template)
-└── main.js                             - Point d'entrée Vue
+├── App.vue
+└── main.js
 ```
 
-## Pattern MVC expliqué
+---
 
-### **Model (lib/)**
-Représente les données et la logique métier:
-- **Classes de modèles** (`models/`) - Structure des données
-- **Services** (`services/`) - Logique métier, opérations sur les données
-- **Utilitaires** (`utils/`) - Fonctions réutilisables
-
-### **View (pages/, components/)**
-Affiche les données à l'utilisateur:
-- **Pages** (`pages/`) - Écrans complets du projet
-- **Composants** (`components/`) - Éléments réutilisables
-
-### **Controller (intégré dans les .vue)**
-Gère les interactions utilisateur:
-- Les fichiers `.vue` importent les services et les utilisent
-- Pas de fichiers controller séparés (Vue gère cela nativement)
-
-## Flux MVC dans l'app
+## Flux fonctionnel (du JSON au PDF)
 
 ```
-Utilisateur (Interface)
-       ↓
-     Vue (pages/*.vue, components/*.vue)
-       ↓
- Controllers (logique dans .vue avec imports de services)
-       ↓
- Services (lib/services/*.js)
-       ↓
- Models (lib/models/*.js)
-       ↓
-   Données
+Utilisateur
+   ↓
+Création d’un formulaire (schema_json)
+   ↓
+Enregistrement en base (formulaires)
+   ↓
+Création d’un gabarit HTML (gabarits)
+   ↓
+Liaison formulaire ↔ gabarit
+   ↓
+Saisie d’une instance (donnees_json)
+   ↓
+Rendu Mustache (HTML final)
+   ↓
+Export PDF (html2pdf.js)
 ```
 
-## Exemple d'utilisation
+---
 
-### Dans une page (Vue)
+## Rôle des couches
 
-```javascript
-// pages/Builder.vue
-import FormService from '@/lib/services/FormService.js'
-import FormField from '@/lib/models/FormField.js'
+### Modèles
+Représentent les structures de données : formulaire, champ, instance, gabarit.
 
-export default {
-  methods: {
-    createNewForm() {
-      // Appeler le service (logique métier)
-      const newForm = FormService.createForm('Mon formulaire', 'Description')
-      
-      // Créer un champ avec le modèle
-      const field = new FormField(null, 'Nom complet', 'text', true)
-      FormService.addFieldToForm(newForm.id, field)
-    }
-  }
-}
-```
+### Services
+Contiennent la logique métier :
+- chargement des formulaires
+- création d’instances
+- rendu HTML
+- export PDF
 
-## Avantages de cette architecture
+### Pages
+Affichent les écrans mobiles et orchestrent les services.
 
-✅ **Séparation des responsabilités** - Données, logique, affichage séparés
-✅ **Réutilisabilité** - Services utilisables dans toutes les pages
-✅ **Maintenabilité** - Facile de localiser et modifier du code
-✅ **Testabilité** - Logique métier testable indépendamment
-✅ **Scalabilité** - Facile d'ajouter de nouvelles pages/services
+---
+
+## Principes appliqués
+- séparation claire des responsabilités
+- logique métier isolée dans les services
+- interfaces adaptées mobile-first
+- code simple et maintenable
