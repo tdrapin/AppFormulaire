@@ -26,6 +26,7 @@ Ce journal décrit le processus fonctionnel de bout en bout, indépendamment de 
    - zone de texte
 5. Le formulaire est converti en **schema_json**.
 6. Le formulaire est enregistré dans la table `formulaires`.
+7. Le formulaire peut être modifié (mise à jour du JSON) tant qu’il n’est pas verrouillé.
 
 **Sortie :** un enregistrement `formulaires` avec `schema_json`.
 
@@ -38,6 +39,8 @@ Ce journal décrit le processus fonctionnel de bout en bout, indépendamment de 
 1. Le gabarit HTML est créé avec des balises Mustache.
 2. Il est enregistré dans la table `gabarits`.
 3. Le formulaire est lié au gabarit via `formulaire_gabarits`.
+4. Un gabarit peut être modifié après création.
+5. Un nouveau gabarit peut être créé à partir d’un gabarit existant (duplication / base de travail).
 
 **Sortie :** gabarit HTML lié au formulaire.
 
@@ -52,8 +55,10 @@ Ce journal décrit le processus fonctionnel de bout en bout, indépendamment de 
 3. L’utilisateur saisit les valeurs.
 4. Les données sont stockées dans `donnees_json`.
 5. Une instance est créée dans `instances`.
+6. Chaque instance porte un **nom unique** basé sur la date et l’heure pour éviter tout écrasement.
+7. Une instance peut être modifiée après création.
 
-**Sortie :** une ligne `instances` avec `donnees_json`.
+**Sortie :** une ligne `instances` avec `donnees_json` et un nom horodaté.
 
 ---
 
@@ -86,10 +91,22 @@ Ce journal décrit le processus fonctionnel de bout en bout, indépendamment de 
 
 ---
 
+## Fonctionnalités attendues (hors authentification)
+- Création, modification et duplication de formulaires
+- Création, modification et duplication de gabarits
+- Création et modification d’instances
+- Nom unique des instances avec horodatage
+- Rendu HTML via Mustache
+- Export PDF côté client
+- Liste et historique des instances par formulaire
+- Affichage mobile-first simple et rapide
+
+---
+
 ## Périmètre actuel
 - Application mobile (smartphone)
 - Pas d’authentification utilisateur pour l’instant
-- Gabarit unique par formulaire
+- Gabarit unique par formulaire (version actuelle)
 - Export PDF côté client uniquement
 
 ---
