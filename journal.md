@@ -114,5 +114,4 @@ Ce journal décrit le processus fonctionnel de bout en bout, indépendamment de 
 ## Prochaines étapes prévues
 1. Finaliser l’interface mobile
 2. Intégrer l’export PDF
-3. Ajouter validation minimale des champs
-4. Préparer la phase authentification (plus tard)
+3. Préparer la phase authentification (plus tard)
