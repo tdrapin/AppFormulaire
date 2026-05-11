@@ -1,0 +1,67 @@
+.test-lab-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.test-lab-container .section-header {
+  text-align: center;
+  padding: 2rem 0;
+  border-bottom: 2px solid #e9ecef;
+  margin-bottom: 2rem;
+}
+
+.test-lab-container .metric-box {
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  background: #fff;
+  text-align: center;
+}
+
+.test-lab-container .metric-box p {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.test-lab-container .log-box {
+  max-height: 400px;
+  overflow: auto;
+  background: #f8f9fa;
+}
+
+.test-lab-container .log-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #e9ecef;
+  padding: 0.4rem 0;
+}
+
+.test-lab-container .log-time {
+  min-width: 80px;
+  color: #6c757d;
+}
+
+.test-lab-container .log-action {
+  font-weight: 600;
+}
+
+.test-lab-container .schema-input {
+  min-height: 180px;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.9rem;
+}
+
+.test-lab-container .forms-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.test-lab-container .form-item {
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  background: #fff;
+  padding: 0.75rem;
+}

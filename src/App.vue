@@ -8,6 +8,8 @@
           <router-link to="/builder" class="nav-link">Créateur</router-link>
           <router-link to="/runner" class="nav-link">Remplisseur</router-link>
           <router-link to="/admin" class="nav-link">Gestion</router-link>
+          <router-link to="/test-lab" class="nav-link">Test Lab</router-link>
+          <router-link to="/mobile" class="nav-link">Mobile UI</router-link>
         </nav>
       </div>
     </header>

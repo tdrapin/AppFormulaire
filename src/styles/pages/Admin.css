@@ -83,3 +83,18 @@
   margin-right: 0.5rem;
   color: #6c757d;
 }
+
+.admin-container .render-preview {
+  max-height: 60vh;
+  overflow: auto;
+  background: #fff;
+}
+
+.admin-container .pdf-container {
+  position: fixed;
+  left: -99999px;
+  top: 0;
+  width: 210mm;
+  background: #fff;
+  z-index: -1;
+}
