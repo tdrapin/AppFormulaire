@@ -40,7 +40,6 @@
       <router-link :to="{ name: 'MobileFormNew' }" class="m-btn m-btn--primary" style="text-align: center">
         Créer un nouveau formulaire
       </router-link>
-      <router-link :to="{ name: 'MobileHistory' }" class="m-btn m-btn--ghost">Historique des rapports</router-link>
     </div>
   </div>
 </template>

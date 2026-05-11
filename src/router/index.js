@@ -7,6 +7,11 @@ const routes = [
     component: () => import('../pages/Home.vue')
   },
   {
+    path: '/hub',
+    name: 'Hub',
+    component: () => import('../pages/Hub.vue')
+  },
+  {
     path: '/builder',
     name: 'Builder',
     component: () => import('../pages/Builder.vue')
@@ -39,26 +44,31 @@ const routes = [
       {
         path: 'forms/new',
         name: 'MobileFormNew',
+        meta: { hideBottomNav: true },
         component: () => import('../pages/mobile/MobileFormBuilder.vue')
       },
       {
         path: 'forms/:formId/edit',
         name: 'MobileFormEdit',
+        meta: { hideBottomNav: true },
         component: () => import('../pages/mobile/MobileFormBuilder.vue')
       },
       {
         path: 'report/:formId',
         name: 'MobileReportFill',
+        meta: { hideBottomNav: true },
         component: () => import('../pages/mobile/MobileReportFill.vue')
       },
       {
         path: 'report/:formId/summary',
         name: 'MobileReportSummary',
+        meta: { hideBottomNav: true },
         component: () => import('../pages/mobile/MobileReportSummary.vue')
       },
       {
         path: 'history/:reportId',
         name: 'MobileReportDetail',
+        meta: { hideBottomNav: true },
         component: () => import('../pages/mobile/MobileReportDetail.vue')
       },
       {
@@ -71,6 +81,7 @@ const routes = [
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
+    meta: { hideBottomNav: true },
     component: () => import('../pages/NotFound.vue')
   }
 ]

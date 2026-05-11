@@ -1,5 +1,5 @@
 <template>
-  <div class="test-lab-container">
+  <div class="af-page test-lab-container">
     <section class="section-header">
       <h1>Test Lab</h1>
       <p class="lead">Page dédiée au diagnostic et à la génération de données de test</p>

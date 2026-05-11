@@ -1,5 +1,5 @@
 <template>
-  <div class="runner-container">
+  <div class="af-page runner-container">
     <section class="section-header">
       <h1>Remplisseur de formulaires</h1>
       <p class="lead">Charge un JSON, affiche les champs et sauvegarde l'instance</p>

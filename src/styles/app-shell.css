@@ -1,0 +1,368 @@
+/**
+ * Coque applicative — style « logistics / terrain » (orange, cartes arrondies)
+ * Onglets bas modernes, sans barre de navigation classique en haut.
+ */
+:root {
+  --af-accent: #ff7a00;
+  --af-accent-hover: #e86e00;
+  --af-accent-soft: rgba(255, 122, 0, 0.12);
+  --af-peach: #fff5ed;
+  --af-peach-deep: #ffe8d4;
+  --af-surface: #ffffff;
+  --af-bg: #fafafa;
+  --af-text: #141414;
+  --af-muted: #6b6b6b;
+  --af-border: #ebebeb;
+  --af-radius: 16px;
+  --af-radius-pill: 999px;
+  --af-tab-h: 64px;
+  --af-shadow: 0 2px 12px rgba(20, 20, 20, 0.06);
+  --af-shadow-up: 0 -8px 32px rgba(20, 20, 20, 0.08);
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--af-text);
+  background: var(--af-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-shell {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.app-main {
+  flex: 1;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 16px;
+  padding-bottom: 24px;
+}
+
+.app-shell--with-tabs .app-main {
+  padding-bottom: calc(24px + var(--af-tab-h) + env(safe-area-inset-bottom, 0px));
+}
+
+.app-shell--with-tabs .mobile-app .m-footer-actions {
+  bottom: calc(var(--af-tab-h) + env(safe-area-inset-bottom, 0px));
+}
+
+.app-shell--with-tabs .mobile-app .m-page {
+  padding-bottom: calc(100px + var(--af-tab-h) + env(safe-area-inset-bottom, 0px));
+}
+
+/* Onglets bas — conteneur flottant type ref. */
+.app-bottom-tabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.app-bottom-tabs__inner {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 480px;
+  background: linear-gradient(180deg, var(--af-peach-deep) 0%, var(--af-peach) 40%, #fff 100%);
+  border-radius: 22px 22px 0 0;
+  box-shadow: var(--af-shadow-up);
+  padding: 6px 8px calc(10px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 4px;
+}
+
+.app-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 6px 4px 4px;
+  border: none;
+  background: transparent;
+  color: var(--af-muted);
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 14px;
+  transition: color 0.15s, background 0.15s;
+  min-width: 0;
+}
+
+.app-tab:hover {
+  color: var(--af-text);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.app-tab--active {
+  color: var(--af-text);
+}
+
+.app-tab__indicator {
+  width: 28px;
+  height: 3px;
+  border-radius: 2px;
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.app-tab--active .app-tab__indicator {
+  background: var(--af-accent);
+}
+
+.app-tab__icon {
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--af-muted);
+}
+
+.app-tab--active .app-tab__icon {
+  color: var(--af-accent);
+}
+
+.app-tab__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Pages bureau (Admin, Runner, …) */
+.af-page {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.af-page .section-header h1,
+.af-page h1 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+  color: var(--af-text);
+}
+
+.af-page .section-header .lead,
+.af-page .lead {
+  color: var(--af-muted);
+  font-size: 0.95rem;
+  margin: 0 0 20px;
+}
+
+.af-page .card {
+  border: 1px solid var(--af-border);
+  border-radius: var(--af-radius);
+  box-shadow: var(--af-shadow);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.af-page .card-header {
+  background: var(--af-surface) !important;
+  color: var(--af-text) !important;
+  border-bottom: 1px solid var(--af-border);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 14px 16px;
+}
+
+.af-page .card-header.bg-danger,
+.af-page .card-header.bg-dark,
+.af-page .card-header.bg-light,
+.af-page .card-header.bg-success {
+  background: var(--af-surface) !important;
+  color: var(--af-text) !important;
+  border-left: 4px solid var(--af-accent);
+}
+
+.af-page .stats-card .card-body {
+  padding: 16px;
+}
+
+.af-page .stats-number {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--af-accent);
+  margin: 0;
+}
+
+.af-page .btn-primary {
+  background: var(--af-accent) !important;
+  border-color: var(--af-accent) !important;
+  border-radius: var(--af-radius-pill) !important;
+  font-weight: 600;
+  padding: 10px 20px;
+}
+
+.af-page .btn-primary:hover {
+  background: var(--af-accent-hover) !important;
+  border-color: var(--af-accent-hover) !important;
+}
+
+.af-page .btn-success {
+  border-radius: var(--af-radius-pill) !important;
+  font-weight: 600;
+}
+
+.af-page .btn-outline-secondary {
+  border-radius: var(--af-radius-pill) !important;
+}
+
+.af-page .form-control,
+.af-page .form-select {
+  border-radius: 12px;
+  border-color: var(--af-border);
+}
+
+.af-page .alert {
+  border-radius: 12px;
+  border: none;
+}
+
+.af-page .metric-box {
+  border-radius: 14px;
+  border: 1px solid var(--af-border);
+  background: var(--af-surface);
+  box-shadow: var(--af-shadow);
+}
+
+/* Hub & segmented */
+.af-segment {
+  display: flex;
+  background: var(--af-peach);
+  border-radius: var(--af-radius-pill);
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.af-segment__item {
+  flex: 1;
+  text-align: center;
+  padding: 10px 12px;
+  border-radius: var(--af-radius-pill);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--af-muted);
+  text-decoration: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.af-segment__item--active {
+  background: var(--af-surface);
+  color: var(--af-text);
+  box-shadow: var(--af-shadow);
+}
+
+.af-tile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.af-tile {
+  background: var(--af-surface);
+  border-radius: var(--af-radius);
+  border: 1px solid var(--af-border);
+  box-shadow: var(--af-shadow);
+  padding: 16px 14px;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  transition: transform 0.12s, box-shadow 0.12s;
+  min-height: 112px;
+}
+
+.af-tile:active {
+  transform: scale(0.98);
+}
+
+.af-tile__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.af-tile__icon--orange {
+  background: var(--af-accent-soft);
+  color: var(--af-accent);
+}
+
+.af-tile__icon--purple {
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+}
+
+.af-tile__icon--green {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.af-tile__icon--slate {
+  background: rgba(71, 85, 105, 0.12);
+  color: #475569;
+}
+
+.af-tile__title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.af-tile__desc {
+  font-size: 0.75rem;
+  color: var(--af-muted);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.af-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: var(--af-radius-pill);
+  border: 2px solid var(--af-accent);
+  color: var(--af-accent);
+  background: transparent;
+  font-weight: 600;
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.af-btn-outline:hover {
+  background: var(--af-accent-soft);
+}

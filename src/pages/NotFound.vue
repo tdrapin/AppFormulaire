@@ -1,53 +1,36 @@
 <template>
-  <div class="not-found-container">
+  <div class="not-found-container af-page">
     <div class="error-content">
-      <div class="error-code">404</div>
+      <div class="error-code" aria-hidden="true">404</div>
       <h1>Page non trouvée</h1>
-      <p class="error-message">Désolé, la page que vous recherchez n'existe pas ou a été supprimée.</p>
-      
-      <div class="mt-5">
-        <router-link to="/" class="btn btn-primary btn-lg">
-          <i class="fas fa-home"></i> Retour à l'accueil
-        </router-link>
-      </div>
+      <p class="error-message">La page demandée n’existe pas ou a été déplacée.</p>
 
-      <div class="mt-5 pt-5 border-top">
-        <h5>Pages disponibles:</h5>
-        <div class="row mt-3">
-          <div class="col-md-6">
-            <ul class="list-unstyled">
-              <li class="mb-2">
-                <router-link to="/">
-                  <i class="fas fa-home"></i> Accueil
-                </router-link>
-              </li>
-              <li class="mb-2">
-                <router-link to="/builder">
-                  <i class="fas fa-hammer"></i> Form Builder
-                </router-link>
-              </li>
-            </ul>
-          </div>
-          <div class="col-md-6">
-            <ul class="list-unstyled">
-              <li class="mb-2">
-                <router-link to="/runner">
-                  <i class="fas fa-play"></i> Form Runner
-                </router-link>
-              </li>
-              <li class="mb-2">
-                <router-link to="/admin">
-                  <i class="fas fa-lock"></i> Administration
-                </router-link>
-              </li>
-            </ul>
-          </div>
-        </div>
+      <router-link to="/" class="nf-btn nf-btn--primary">
+        <i class="fas fa-house" aria-hidden="true" />
+        Retour à l’accueil
+      </router-link>
+
+      <div class="nf-divider">
+        <h2>Accès rapides</h2>
+        <ul class="nf-links">
+          <li>
+            <router-link :to="{ name: 'MobileFormList' }"><i class="fa-solid fa-file-lines" /> Formulaires</router-link>
+          </li>
+          <li>
+            <router-link :to="{ name: 'Hub' }"><i class="fa-solid fa-layer-group" /> Outils</router-link>
+          </li>
+          <li>
+            <router-link :to="{ name: 'Runner' }"><i class="fa-solid fa-keyboard" /> Remplisseur web</router-link>
+          </li>
+          <li>
+            <router-link :to="{ name: 'Admin' }"><i class="fa-solid fa-file-pdf" /> Gestion PDF</router-link>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// 404 page - Not found
+// 404 — navigation sans barre classique
 </script>

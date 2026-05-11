@@ -1,42 +1,45 @@
 <template>
-  <div class="home">
-    <h1>Bienvenue sur AppFormulaire</h1>
-    <p>Plateforme de création et gestion de formulaires techniques</p>
-
-    <div class="row mt-4">
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Créateur de formulaires</h5>
-            <p class="card-text">Créez et éditez vos formulaires</p>
-            <router-link to="/builder" class="btn btn-primary">Accéder</router-link>
-          </div>
-        </div>
+  <div class="home-modern">
+    <section class="home-modern__hero" aria-hidden="true">
+      <div class="home-modern__hero-inner">
+        <p class="home-modern__kicker">Formulaires dynamiques</p>
+        <h1 class="home-modern__title">AppFormulaire</h1>
+        <p class="home-modern__hero-desc">Création, saisie terrain et rapports PDF — tout depuis votre mobile.</p>
       </div>
+    </section>
 
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Remplisseur de formulaires</h5>
-            <p class="card-text">Remplissez les formulaires</p>
-            <router-link to="/runner" class="btn btn-primary">Accéder</router-link>
-          </div>
-        </div>
-      </div>
+    <div class="home-modern__sheet">
+      <p class="home-modern__intro">Que souhaitez-vous faire ?</p>
 
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Administration</h5>
-            <p class="card-text">Gérez et exploitez les données</p>
-            <router-link to="/admin" class="btn btn-primary">Accéder</router-link>
-          </div>
-        </div>
+      <div class="af-tile-grid home-modern__grid">
+        <router-link class="af-tile" :to="{ name: 'MobileFormList' }">
+          <span class="af-tile__icon af-tile__icon--orange"><i class="fa-solid fa-list-check" /></span>
+          <h2 class="af-tile__title">Mes formulaires</h2>
+          <p class="af-tile__desc">Choisir un gabarit et lancer une saisie terrain.</p>
+        </router-link>
+
+        <router-link class="af-tile" :to="{ name: 'MobileFormNew' }">
+          <span class="af-tile__icon af-tile__icon--purple"><i class="fa-solid fa-plus" /></span>
+          <h2 class="af-tile__title">Nouveau gabarit</h2>
+          <p class="af-tile__desc">Concepteur mobile : questions, types, obligatoire.</p>
+        </router-link>
+
+        <router-link class="af-tile" :to="{ name: 'MobileHistory' }">
+          <span class="af-tile__icon af-tile__icon--green"><i class="fa-solid fa-folder-open" /></span>
+          <h2 class="af-tile__title">Historique</h2>
+          <p class="af-tile__desc">Rapports terminés ou brouillons, export PDF.</p>
+        </router-link>
+
+        <router-link class="af-tile" :to="{ name: 'Hub' }">
+          <span class="af-tile__icon af-tile__icon--slate"><i class="fa-solid fa-gear" /></span>
+          <h2 class="af-tile__title">Outils & PDF</h2>
+          <p class="af-tile__desc">Administration, remplisseur web, tests.</p>
+        </router-link>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// Home page
+// Accueil — grille type référence « trucker home »
 </script>

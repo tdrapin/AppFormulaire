@@ -10,6 +10,17 @@
       </div>
     </header>
 
+    <div
+      v-if="form && fillSession && sections.length"
+      class="m-progress-strip"
+      role="progressbar"
+      :aria-valuenow="sectionIndex + 1"
+      :aria-valuemax="sections.length"
+      aria-label="Progression du formulaire"
+    >
+      <div class="m-progress-strip__fill" :style="{ width: progressWidth + '%' }" />
+    </div>
+
     <div class="m-body">
       <div v-if="pageError" class="m-banner-error">{{ pageError }}</div>
       <div v-else-if="!form" class="m-banner-error">Aucun gabarit ne correspond à cette saisie.</div>
@@ -24,7 +35,7 @@
           </div>
         </div>
 
-        <section class="m-card">
+        <section class="m-form-shell">
           <div class="m-block-title">
             <span class="m-step-badge">{{ sectionIndex + 1 }}</span>
             <h2>{{ currentSection?.titre }}</h2>
@@ -85,6 +96,12 @@ const sectionIndex = ref(0)
 
 const currentSection = computed(() => sections.value[sectionIndex.value])
 const currentChamps = computed(() => currentSection.value?.champs || [])
+
+const progressWidth = computed(() => {
+  const n = sections.value.length
+  if (!n) return 0
+  return Math.round(((sectionIndex.value + 1) / n) * 100)
+})
 
 const globalIndexStart = computed(() => {
   let n = 0

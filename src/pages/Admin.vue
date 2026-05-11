@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-container">
+  <div class="af-page admin-container">
     <section class="section-header">
       <h1>Espace de gestion</h1>
       <p class="lead">Rendu Mustache et export PDF des instances</p>

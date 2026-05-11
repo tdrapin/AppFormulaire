@@ -3,14 +3,14 @@
  * Fond clair, cartes blanches, accents cohérents, boutons fixes bas d’écran
  */
 .mobile-app {
-  --m-bg: #eef1f5;
+  --m-bg: #fafafa;
   --m-surface: #ffffff;
-  --m-text: #1a1d24;
-  --m-text-muted: #5c6370;
-  --m-border: #e2e6ec;
-  --m-accent: #2563eb;
-  --m-accent-soft: rgba(37, 99, 235, 0.1);
-  --m-accent-dark: #1d4ed8;
+  --m-text: #141414;
+  --m-text-muted: #6b6b6b;
+  --m-border: #ebebeb;
+  --m-accent: #ff7a00;
+  --m-accent-soft: rgba(255, 122, 0, 0.14);
+  --m-accent-dark: #e86e00;
   --m-success: #059669;
   --m-warning: #d97706;
   --m-danger: #dc2626;
@@ -59,9 +59,25 @@
   min-height: var(--m-header-h);
   padding: 8px 16px;
   padding-top: max(8px, env(safe-area-inset-top, 0px));
-  background: rgba(238, 241, 245, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--m-border);
+}
+
+.m-progress-strip {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  height: 3px;
+  background: #ececec;
+  flex-shrink: 0;
+}
+
+.m-progress-strip__fill {
+  height: 100%;
+  background: var(--m-accent);
+  border-radius: 0 2px 2px 0;
+  transition: width 0.28s ease;
 }
 
 .m-header__back {
@@ -119,6 +135,15 @@
   border: 1px solid var(--m-border);
   padding: 16px;
   margin-bottom: 12px;
+}
+
+.m-form-shell {
+  border: 1px solid rgba(255, 122, 0, 0.22);
+  border-radius: var(--m-radius);
+  background: var(--m-surface);
+  box-shadow: var(--m-shadow-card);
+  padding: 16px;
+  margin-bottom: 14px;
 }
 
 .m-card--muted {
@@ -185,9 +210,9 @@
 }
 
 .m-banner-info {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #1e40af;
+  background: #fff5ed;
+  border: 1px solid #ffd4b3;
+  color: #9a3412;
   border-radius: var(--m-radius-sm);
   padding: 12px 14px;
   font-size: 0.9rem;
@@ -252,7 +277,7 @@
   max-width: 440px;
   padding: 12px 16px;
   padding-bottom: var(--m-footer-safe);
-  background: linear-gradient(to top, var(--m-bg) 70%, transparent);
+  background: linear-gradient(to top, #ffffff 45%, rgba(255, 255, 255, 0) 100%);
   z-index: 30;
 }
 
@@ -262,7 +287,7 @@
   justify-content: center;
   width: 100%;
   border: none;
-  border-radius: var(--m-radius-sm);
+  border-radius: 999px;
   padding: 14px 18px;
   font-size: 1rem;
   font-weight: 600;
@@ -291,8 +316,8 @@
 
 .m-btn--ghost {
   background: var(--m-surface);
-  color: var(--m-text);
-  border: 1px solid var(--m-border);
+  border: 2px solid var(--m-accent);
+  color: var(--m-accent);
   margin-top: 10px;
 }
 
@@ -408,7 +433,7 @@
 
 .m-btn-sm--primary {
   background: var(--m-accent-soft);
-  border-color: #93c5fd;
+  border-color: #ffb380;
   color: var(--m-accent-dark);
 }
 
