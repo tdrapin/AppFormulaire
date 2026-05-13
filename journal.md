@@ -4,7 +4,7 @@
 Créer une application **mobile-first** pour :
 - définir des formulaires via un modèle JSON,
 - saisir des données terrain (instances),
-- générer un document final HTML puis PDF.
+- générer des documents PDF.
 
 Ce journal décrit le processus fonctionnel de bout en bout, indépendamment de l’implémentation technique.
 
@@ -26,23 +26,23 @@ Ce journal décrit le processus fonctionnel de bout en bout, indépendamment de 
    - zone de texte
 5. Le formulaire est converti en **schema_json**.
 6. Le formulaire est enregistré dans la table `formulaires`.
-7. Le formulaire peut être modifié (mise à jour du JSON) tant qu’il n’est pas verrouillé.
+7. Le formulaire peut être modifié : toute modification crée **une nouvelle version** du formulaire.
 
-**Sortie :** un enregistrement `formulaires` avec `schema_json`.
+**Sortie :** un enregistrement `formulaires` avec `schema_json` et version.
 
 ---
 
-### 2) Création / choix d’un gabarit
+### 2) Création / gestion des gabarits
 **But :** définir le modèle visuel de sortie.
 
 **Étapes :**
-1. Le gabarit HTML est créé avec des balises Mustache.
+1. Le gabarit HTML est créé par un concepteur avec des balises Mustache.
 2. Il est enregistré dans la table `gabarits`.
-3. Le formulaire est lié au gabarit via `formulaire_gabarits`.
+3. Le formulaire est lié à un ou plusieurs gabarits via `formulaire_gabarits`.
 4. Un gabarit peut être modifié après création.
 5. Un nouveau gabarit peut être créé à partir d’un gabarit existant (duplication / base de travail).
 
-**Sortie :** gabarit HTML lié au formulaire.
+**Sortie :** gabarits HTML liés à un formulaire.
 
 ---
 
@@ -62,14 +62,26 @@ Ce journal décrit le processus fonctionnel de bout en bout, indépendamment de 
 
 ---
 
-### 4) Génération HTML (rendu)
+### 4) Consultation des instances
+**But :** consulter et exporter les rapports.
+
+**Étapes :**
+1. Les instances sont affichées **individuellement** (pas de regroupement unique).
+2. L’utilisateur peut filtrer par formulaire.
+3. Chaque instance peut être ouverte, exportée en PDF, ou regroupée avec d’autres pour un export multiple.
+
+**Sortie :** consultation claire des instances par formulaire.
+
+---
+
+### 5) Génération HTML (rendu)
 **But :** fusionner le gabarit et les données.
 
 **Étapes :**
 1. Récupérer :
    - le `schema_json` du formulaire (layout),
-   - le gabarit HTML,
-   - les instances associées.
+   - le gabarit HTML choisi,
+   - l’instance cible (ou un lot d’instances).
 2. Construire un objet de rendu :
    - `layout`
    - `instances`
@@ -79,7 +91,7 @@ Ce journal décrit le processus fonctionnel de bout en bout, indépendamment de 
 
 ---
 
-### 5) Génération PDF
+### 6) Génération PDF
 **But :** exporter un document final.
 
 **Étapes :**
@@ -93,25 +105,40 @@ Ce journal décrit le processus fonctionnel de bout en bout, indépendamment de 
 
 ## Fonctionnalités attendues (hors authentification)
 - Création, modification et duplication de formulaires
+- Versionnement automatique des formulaires lors d’une modification
 - Création, modification et duplication de gabarits
+- Gestion des gabarits dans une page dédiée (pas d’affichage côté client)
+- Un formulaire peut avoir plusieurs gabarits (un gabarit n’appartient qu’à un formulaire)
 - Création et modification d’instances
 - Nom unique des instances avec horodatage
+- Liste des instances par formulaire
+- Export PDF individuel et export PDF multiple
 - Rendu HTML via Mustache
-- Export PDF côté client
-- Liste et historique des instances par formulaire
 - Affichage mobile-first simple et rapide
+
+---
+
+## Vues attendues
+- **Vue client** :
+  - créer et gérer des formulaires
+  - créer des instances
+  - retrouver les instances par formulaire
+  - exporter les instances (individuel ou groupé)
+- **Vue gabarits** :
+  - créer / modifier / dupliquer les gabarits
+  - associer les gabarits aux formulaires
 
 ---
 
 ## Périmètre actuel
 - Application mobile (smartphone)
 - Pas d’authentification utilisateur pour l’instant
-- Gabarit unique par formulaire (version actuelle)
 - Export PDF côté client uniquement
 
 ---
 
 ## Prochaines étapes prévues
 1. Finaliser l’interface mobile
-2. Intégrer l’export PDF
-3. Préparer la phase authentification (plus tard)
+2. Intégrer l’export PDF (individuel + groupé)
+3. Ajouter validation minimale des champs
+4. Préparer la phase authentification (plus tard)
