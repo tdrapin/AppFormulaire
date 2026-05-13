@@ -11,7 +11,10 @@
     </header>
 
     <div class="m-body">
-      <div v-if="route.query.ok" class="m-banner-info">Document enregistré. Le PDF sera disponible dans votre espace (démo).</div>
+      <div v-if="route.query.ok" class="m-banner-info">Document enregistré localement.</div>
+      <div v-if="route.query.sync_err" class="m-banner-error">
+        Le rapport est enregistré sur l’appareil, mais la synchronisation Supabase a échoué (droits réseau ou RLS).
+      </div>
 
       <div v-if="!reports.length" class="m-empty">
         <strong>Aucun rapport</strong>
@@ -23,6 +26,9 @@
           <div style="min-width: 0">
             <h2 class="m-list-card__title">{{ r.formTitre }}</h2>
             <p class="m-list-card__desc" style="margin-bottom: 6px">{{ r.client }}</p>
+            <p v-if="r.supabase_sync_error" class="m-list-card__desc" style="color: var(--m-danger); margin-top: 2px">
+              Sync : {{ r.supabase_sync_error }}
+            </p>
             <time class="m-question__num" style="color: var(--m-text-muted); font-weight: 500">{{
               formatDate(r.dateISO)
             }}</time>
@@ -39,7 +45,14 @@
           <router-link class="m-btn-sm m-btn-sm--primary" :to="{ name: 'MobileReportDetail', params: { reportId: r.id } }">
             Voir
           </router-link>
-          <button type="button" class="m-btn-sm" @click="exportDemo(r)">Exporter</button>
+          <button
+            type="button"
+            class="m-btn-sm"
+            :disabled="exportingId === r.id"
+            @click="exportReportPdf(r)"
+          >
+            {{ exportingId === r.id ? 'PDF…' : 'Exporter' }}
+          </button>
         </div>
       </article>
     </div>
@@ -47,12 +60,16 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMobileFormDemo } from '../../composables/useMobileFormDemo'
+import { buildPdfFilename, exportHtmlElementToPdf } from '../../composables/usePdfExport'
+import { buildMobileReportPdfHtml } from '../../lib/renderMobileReportPdfHtml'
 
 const route = useRoute()
 const router = useRouter()
-const { reports } = useMobileFormDemo()
+const { reports, formById } = useMobileFormDemo()
+const exportingId = ref('')
 
 function formatDate(iso: string) {
   try {
@@ -65,7 +82,21 @@ function formatDate(iso: string) {
   }
 }
 
-function exportDemo(r) {
-  window.alert(`Export PDF (démo) — rapport « ${r.formTitre} » pour ${r.client}.`)
+async function exportReportPdf(r) {
+  const form = formById(r.formId)
+  const wrap = document.createElement('div')
+  wrap.style.cssText =
+    'position:fixed;left:-12000px;top:0;width:210mm;padding:12mm;background:#fff;'
+  wrap.innerHTML = buildMobileReportPdfHtml(r, form)
+  document.body.appendChild(wrap)
+  exportingId.value = r.id
+  try {
+    await exportHtmlElementToPdf(wrap, buildPdfFilename(r.formTitre || 'rapport', 'rapport'))
+  } catch (e) {
+    window.alert(e?.message || "Impossible d'exporter le PDF.")
+  } finally {
+    document.body.removeChild(wrap)
+    exportingId.value = ''
+  }
 }
 </script>

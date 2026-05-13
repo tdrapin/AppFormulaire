@@ -85,11 +85,13 @@ function goBack() {
   router.push({ name: 'MobileReportFill', params: { formId: formId.value } })
 }
 
-function generate() {
+async function generate() {
   busy.value = true
   try {
-    saveReportFromSession('terminé')
-    router.push({ name: 'MobileHistory', query: { ok: '1' } })
+    const result = await saveReportFromSession('terminé')
+    const q = { ok: '1' }
+    if (result?.supabase_sync_error) q.sync_err = '1'
+    router.push({ name: 'MobileHistory', query: q })
   } finally {
     busy.value = false
   }

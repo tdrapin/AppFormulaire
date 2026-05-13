@@ -40,6 +40,24 @@ async function createForm(nom, schemaJson) {
   return data
 }
 
+async function updateForm(formId, { nom, schema_json }) {
+  const client = ensureClient()
+  const payload = {}
+  if (nom !== undefined) payload.nom = nom
+  if (schema_json !== undefined) payload.schema_json = schema_json
+  if (!Object.keys(payload).length) return null
+
+  const { data, error } = await client
+    .from('formulaires')
+    .update(payload)
+    .eq('id', formId)
+    .select('id, nom, schema_json, created_at')
+    .single()
+
+  if (error) throw error
+  return data
+}
+
 async function createTemplate(nom, htmlContent, cssContent = '') {
   const client = ensureClient()
   const { data, error } = await client
@@ -49,6 +67,24 @@ async function createTemplate(nom, htmlContent, cssContent = '') {
       html_content: htmlContent,
       css_content: cssContent
     })
+    .select('id, nom, html_content, css_content, created_at')
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+async function updateTemplate(gabaritId, { html_content, css_content }) {
+  const client = ensureClient()
+  const payload = {}
+  if (html_content !== undefined) payload.html_content = html_content
+  if (css_content !== undefined) payload.css_content = css_content
+  if (!Object.keys(payload).length) return null
+
+  const { data, error } = await client
+    .from('gabarits')
+    .update(payload)
+    .eq('id', gabaritId)
     .select('id, nom, html_content, css_content, created_at')
     .single()
 
@@ -148,10 +184,12 @@ async function getInstancesByFormId(formId) {
 export default {
   getForms,
   createForm,
+  updateForm,
   getFormById,
   getFormTemplates,
   getFormIdsWithTemplate,
   createTemplate,
+  updateTemplate,
   linkFormTemplate,
   createInstance,
   getInstancesByFormId

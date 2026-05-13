@@ -14,6 +14,9 @@
       <div v-if="!report" class="m-banner-error">Rapport introuvable.</div>
 
       <template v-else>
+        <div v-if="report.supabase_sync_error" class="m-banner-error" style="margin-bottom: 12px">
+          Synchronisation Supabase : {{ report.supabase_sync_error }}
+        </div>
         <div class="m-card m-card--muted">
           <p style="margin: 0 0 6px; font-size: 0.85rem; color: var(--m-text-muted)">Client</p>
           <p style="margin: 0; font-weight: 600">{{ report.client }}</p>
@@ -34,20 +37,40 @@
       </template>
     </div>
 
-    <div v-if="report" class="m-footer-actions">
-      <button type="button" class="m-btn m-btn--primary" @click="exportDemo">Exporter le PDF</button>
+    <div v-if="report" class="m-footer-actions m-footer-actions--split">
+      <button type="button" class="m-btn m-btn--ghost" :disabled="isPdfExporting" @click="exportReportPdf">
+        {{ isPdfExporting ? 'PDF…' : 'Exporter en PDF' }}
+      </button>
+    </div>
+
+    <div v-if="report" ref="pdfRoot" class="m-pdf-offscreen" aria-hidden="true">
+      <h1>{{ report.formTitre }}</h1>
+      <p class="meta">Client : {{ report.client }}</p>
+      <p class="meta">Date : {{ formatDate(report.dateISO) }}</p>
+      <section v-for="sec in labelSections" :key="sec.id" class="pdf-sec">
+        <h2>{{ sec.titre }}</h2>
+        <div v-for="row in sec.rows" :key="row.id" class="pdf-row">
+          <strong>{{ row.label }}</strong>
+          <span>{{ row.value }}</span>
+        </div>
+      </section>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMobileFormDemo } from '../../composables/useMobileFormDemo'
+import { buildPdfFilename, exportHtmlElementToPdf } from '../../composables/usePdfExport'
 
 const route = useRoute()
 const router = useRouter()
 const { reports, formById } = useMobileFormDemo()
+
+const pdfRoot = ref(null)
+const isPdfExporting = ref(false)
+const pdfError = ref('')
 
 const reportId = computed(() => route.params.reportId as string)
 const report = computed(() => reports.value.find(r => r.id === reportId.value))
@@ -82,8 +105,59 @@ function formatDate(iso: string) {
   }
 }
 
-function exportDemo() {
-  if (!report.value) return
-  window.alert(`Export PDF (démo) — « ${report.value.formTitre} ».`)
+async function exportReportPdf() {
+  if (!report.value || !pdfRoot.value) return
+  pdfError.value = ''
+  try {
+    isPdfExporting.value = true
+    await nextTick()
+    await exportHtmlElementToPdf(
+      pdfRoot.value,
+      buildPdfFilename(report.value.formTitre || 'rapport', 'rapport')
+    )
+  } catch (e) {
+    pdfError.value = e?.message || "Impossible d'exporter le PDF."
+    window.alert(pdfError.value)
+  } finally {
+    isPdfExporting.value = false
+  }
 }
 </script>
+
+<style scoped>
+.m-footer-actions--split {
+  justify-content: stretch;
+}
+.m-pdf-offscreen {
+  position: fixed;
+  left: -12000px;
+  top: 0;
+  width: 210mm;
+  padding: 12mm;
+  background: #fff;
+  color: #111;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 11pt;
+}
+.m-pdf-offscreen h1 {
+  font-size: 18pt;
+  margin: 0 0 10px;
+}
+.m-pdf-offscreen .meta {
+  margin: 4px 0;
+  color: #444;
+}
+.m-pdf-offscreen .pdf-sec {
+  margin-top: 14px;
+}
+.m-pdf-offscreen h2 {
+  font-size: 12pt;
+  margin: 0 0 8px;
+}
+.m-pdf-offscreen .pdf-row {
+  display: grid;
+  grid-template-columns: 40% 60%;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+</style>

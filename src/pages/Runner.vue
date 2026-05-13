@@ -67,15 +67,42 @@
             {{ isSubmitting ? 'Enregistrement...' : "Enregistrer l'instance" }}
           </button>
         </form>
+
+        <div class="mt-4 d-flex flex-wrap gap-2 align-items-center">
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm"
+            :disabled="isPdfExporting || !hasAnyAnswer"
+            @click="exportDraftPdf"
+          >
+            {{ isPdfExporting ? 'PDF…' : 'Exporter la saisie en PDF' }}
+          </button>
+          <span class="text-muted small">Aperçu local de la saisie courante (sans enregistrer).</span>
+        </div>
       </div>
+    </div>
+
+    <div ref="runnerPdfRoot" class="runner-pdf-root" aria-hidden="true">
+      <template v-if="selectedForm">
+        <h1>{{ selectedForm.schema_json?.titre || selectedForm.nom }}</h1>
+        <p v-if="selectedForm.schema_json?.sousTitre" class="sub">{{ selectedForm.schema_json.sousTitre }}</p>
+        <section v-for="section in selectedForm.schema_json?.sections || []" :key="section.id" class="pdf-sec">
+          <h2>{{ section.titre }}</h2>
+          <div v-for="champ in section.champs || []" :key="champ.id" class="pdf-row">
+            <strong>{{ champ.label }}</strong>
+            <span>{{ displayFieldValue(champ.id) }}</span>
+          </div>
+        </section>
+      </template>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import SupabaseDataService from '../lib/services/SupabaseDataService'
 import { isSupabaseConfigured } from '../lib/supabaseClient'
+import { buildPdfFilename, exportHtmlElementToPdf } from '../composables/usePdfExport'
 
 const TEMP_USER_ID =
   import.meta.env.VITE_TEMP_USER_ID || '11111111-1111-1111-1111-111111111111'
@@ -86,8 +113,14 @@ const formData = ref({})
 const globalError = ref('')
 const successMessage = ref('')
 const isSubmitting = ref(false)
+const isPdfExporting = ref(false)
+const runnerPdfRoot = ref(null)
 
 const isSupabaseReady = isSupabaseConfigured()
+
+const hasAnyAnswer = computed(() =>
+  Object.values(formData.value || {}).some(v => String(v ?? '').trim() !== '')
+)
 
 const selectedForm = computed(() =>
   forms.value.find(form => form.id === selectedFormId.value)
@@ -97,6 +130,29 @@ function mapInputType(type) {
   if (type === 'number') return 'number'
   if (type === 'date') return 'date'
   return 'text'
+}
+
+function displayFieldValue(champId) {
+  const v = formData.value[champId]
+  if (v === undefined || v === null || String(v).trim() === '') return '—'
+  return String(v)
+}
+
+async function exportDraftPdf() {
+  if (!runnerPdfRoot.value || !selectedForm.value) return
+  try {
+    isPdfExporting.value = true
+    globalError.value = ''
+    await nextTick()
+    await exportHtmlElementToPdf(
+      runnerPdfRoot.value,
+      buildPdfFilename(selectedForm.value?.nom || selectedForm.value?.schema_json?.titre || 'saisie')
+    )
+  } catch (error) {
+    globalError.value = error.message || "Erreur pendant l'export PDF."
+  } finally {
+    isPdfExporting.value = false
+  }
 }
 
 function resetFormData() {
@@ -164,3 +220,39 @@ watch(selectedFormId, () => {
 
 onMounted(loadForms)
 </script>
+
+<style scoped>
+.runner-pdf-root {
+  position: fixed;
+  left: -12000px;
+  top: 0;
+  width: 210mm;
+  padding: 12mm;
+  background: #fff;
+  color: #222;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11pt;
+}
+.runner-pdf-root h1 {
+  font-size: 18pt;
+  margin: 0 0 8px;
+}
+.runner-pdf-root .sub {
+  margin: 0 0 16px;
+  color: #555;
+}
+.runner-pdf-root .pdf-sec {
+  margin-bottom: 14px;
+}
+.runner-pdf-root h2 {
+  font-size: 12pt;
+  margin: 0 0 8px;
+  color: #333;
+}
+.runner-pdf-root .pdf-row {
+  margin-bottom: 6px;
+  display: grid;
+  grid-template-columns: 38% 62%;
+  gap: 8px;
+}
+</style>

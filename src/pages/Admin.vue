@@ -99,6 +99,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import Mustache from 'mustache'
 import SupabaseDataService from '../lib/services/SupabaseDataService'
 import { isSupabaseConfigured } from '../lib/supabaseClient'
+import { buildPdfFilename, exportHtmlElementToPdf } from '../composables/usePdfExport'
 
 const forms = ref([])
 const templates = ref([])
@@ -198,18 +199,10 @@ async function exportPdf() {
 
   try {
     isExporting.value = true
-    const html2pdf = (await import('html2pdf.js')).default
-
-    await html2pdf()
-      .set({
-        margin: 10,
-        filename: `formulaire-${selectedForm.value?.nom || 'export'}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      })
-      .from(pdfContainer.value)
-      .save()
+    await exportHtmlElementToPdf(
+      pdfContainer.value,
+      buildPdfFilename(selectedForm.value?.nom || 'export')
+    )
   } catch (error) {
     globalError.value = error.message || "Erreur pendant l'export PDF."
   } finally {

@@ -1,4 +1,9 @@
 import { ref, computed } from 'vue'
+import { isSupabaseConfigured } from '../lib/supabaseClient'
+import {
+  ensureRemoteFormulaireForMobileForm,
+  createSupabaseInstanceForMobileForm
+} from '../lib/mobileSupabaseSync'
 
 const STORAGE_KEY = 'appformulaire_mobile_demo_v1'
 
@@ -191,7 +196,7 @@ export function useMobileFormDemo() {
     return first ? String(first).slice(0, 80) : '—'
   }
 
-  function saveReportFromSession(statut = 'terminé') {
+  async function saveReportFromSession(statut = 'terminé') {
     if (!fillSession.value) return null
     const f = formById(fillSession.value.formId)
     if (!f) return null
@@ -205,10 +210,21 @@ export function useMobileFormDemo() {
       statut,
       answers: { ...fillSession.value.answers }
     }
+
+    if (isSupabaseConfigured()) {
+      try {
+        await ensureRemoteFormulaireForMobileForm(f, persist)
+        await createSupabaseInstanceForMobileForm(f, rep.answers)
+        rep.supabase_synced = true
+      } catch (e) {
+        rep.supabase_sync_error = e?.message || String(e)
+      }
+    }
+
     reports.value = [rep, ...reports.value]
     fillSession.value = null
     persist()
-    return rep.id
+    return { id: rep.id, supabase_sync_error: rep.supabase_sync_error }
   }
 
   const questionCount = computed(() => {

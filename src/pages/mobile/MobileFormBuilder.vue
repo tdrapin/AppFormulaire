@@ -68,6 +68,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMobileFormDemo } from '../../composables/useMobileFormDemo'
+import { isSupabaseConfigured } from '../../lib/supabaseClient'
+import { ensureRemoteFormulaireForMobileForm } from '../../lib/mobileSupabaseSync'
 
 const route = useRoute()
 const router = useRouter()
@@ -124,7 +126,7 @@ onMounted(() => {
   if (!questions.value.length) addQuestion()
 })
 
-function onContinue() {
+async function onContinue() {
   pageError.value = ''
   if (!titre.value.trim()) {
     pageError.value = 'Indiquez un titre pour le formulaire.'
@@ -161,7 +163,9 @@ function onContinue() {
       ]
     }
 
+    let targetId = ''
     if (isEdit.value && editFormId.value) {
+      targetId = editFormId.value
       updateForm(editFormId.value, {
         nom: schema.titre,
         description: schema.description,
@@ -169,8 +173,21 @@ function onContinue() {
         schema_json: schema
       })
     } else {
-      addForm(schema)
+      targetId = addForm(schema)
     }
+
+    if (isSupabaseConfigured()) {
+      const f = formById(targetId)
+      if (f) {
+        try {
+          await ensureRemoteFormulaireForMobileForm(f, persist)
+        } catch (e) {
+          pageError.value = e?.message || 'Synchronisation Supabase impossible.'
+          return
+        }
+      }
+    }
+
     router.push({ name: 'MobileFormList' })
   } finally {
     saving.value = false
