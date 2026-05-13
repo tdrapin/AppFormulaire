@@ -1,6 +1,10 @@
 <template>
   <div class="mobile-app">
-    <router-view />
+    <router-view v-slot="{ Component }">
+      <transition name="m-page" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
   </div>
 </template>
 

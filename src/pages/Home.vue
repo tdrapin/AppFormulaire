@@ -15,13 +15,13 @@
         <router-link class="af-tile" :to="{ name: 'MobileFormList' }">
           <span class="af-tile__icon af-tile__icon--orange"><i class="fa-solid fa-list-check" /></span>
           <h2 class="af-tile__title">Mes formulaires</h2>
-          <p class="af-tile__desc">Choisir un gabarit et lancer une saisie terrain.</p>
+          <p class="af-tile__desc">Choisir un formulaire et lancer une saisie terrain.</p>
         </router-link>
 
         <router-link class="af-tile" :to="{ name: 'MobileFormNew' }">
           <span class="af-tile__icon af-tile__icon--purple"><i class="fa-solid fa-plus" /></span>
-          <h2 class="af-tile__title">Nouveau gabarit</h2>
-          <p class="af-tile__desc">Concepteur mobile : questions, types, obligatoire.</p>
+          <h2 class="af-tile__title">Nouveau formulaire</h2>
+          <p class="af-tile__desc">Créez un formulaire avec vos champs personnalisés.</p>
         </router-link>
 
         <router-link class="af-tile" :to="{ name: 'MobileHistory' }">

@@ -18,7 +18,7 @@
           Synchronisation Supabase : {{ report.supabase_sync_error }}
         </div>
         <div class="m-card m-card--muted">
-          <p style="margin: 0 0 6px; font-size: 0.85rem; color: var(--m-text-muted)">Client</p>
+          <p style="margin: 0 0 6px; font-size: 0.85rem; color: var(--m-text-muted)">Destinataire</p>
           <p style="margin: 0; font-weight: 600">{{ report.client }}</p>
           <p style="margin: 10px 0 0; font-size: 0.85rem; color: var(--m-text-muted)">Date</p>
           <p style="margin: 0">{{ formatDate(report.dateISO) }}</p>

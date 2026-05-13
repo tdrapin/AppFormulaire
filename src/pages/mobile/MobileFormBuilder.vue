@@ -6,7 +6,7 @@
       </button>
       <div class="m-header__titles">
         <h1 class="m-header__title">{{ isEdit ? 'Modifier le formulaire' : 'Nouveau formulaire' }}</h1>
-        <p class="m-header__subtitle">Mode concepteur</p>
+        <p class="m-header__subtitle">Mode création</p>
       </div>
     </header>
 

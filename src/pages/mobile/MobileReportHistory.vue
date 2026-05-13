@@ -6,7 +6,7 @@
       </button>
       <div class="m-header__titles">
         <h1 class="m-header__title">Historique</h1>
-        <p class="m-header__subtitle">Rapports remplis et PDF</p>
+        <p class="m-header__subtitle">Rapports enregistrés</p>
       </div>
     </header>
 
@@ -17,8 +17,12 @@
       </div>
 
       <div v-if="!reports.length" class="m-empty">
+        <div class="m-empty__icon"><i class="fa-solid fa-folder-open" /></div>
         <strong>Aucun rapport</strong>
-        <span>Les rapports générés apparaîtront ici.</span>
+        <span>Les rapports que vous générerez depuis la saisie terrain apparaîtront ici.</span>
+        <router-link :to="{ name: 'MobileFormList' }" class="m-btn m-btn--ghost" style="display: inline-block; width: auto; padding: 12px 24px; text-decoration: none;">
+          Voir les formulaires
+        </router-link>
       </div>
 
       <article v-for="r in reports" :key="r.id" class="m-card">

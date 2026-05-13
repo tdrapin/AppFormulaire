@@ -23,50 +23,52 @@
 
     <div class="m-body">
       <div v-if="pageError" class="m-banner-error">{{ pageError }}</div>
-      <div v-else-if="!form" class="m-banner-error">Aucun gabarit ne correspond à cette saisie.</div>
+      <div v-else-if="!form" class="m-banner-error">Aucun formulaire ne correspond à cette saisie.</div>
 
       <template v-else-if="fillSession">
         <div class="m-card m-card--muted">
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
             <span style="font-size: 0.85rem; color: var(--m-text-muted)">
-              Bloc {{ sectionIndex + 1 }} / {{ sections.length }}
+              Section {{ sectionIndex + 1 }} / {{ sections.length }}
             </span>
             <span class="m-step-badge">{{ filledRequired }}/{{ totalRequired }}</span>
           </div>
         </div>
 
-        <section class="m-form-shell">
-          <div class="m-block-title">
-            <span class="m-step-badge">{{ sectionIndex + 1 }}</span>
-            <h2>{{ currentSection?.titre }}</h2>
-          </div>
-
-          <div v-for="(champ, idx) in currentChamps" :key="champ.id" class="m-question">
-            <div class="m-question__num">Q{{ globalIndexStart + idx + 1 }}</div>
-            <div class="m-question__label">
-              {{ champ.label }}
-              <span v-if="champ.required" style="color: var(--m-danger)">*</span>
+        <transition name="m-section" mode="out-in">
+          <section class="m-form-shell" :key="sectionIndex">
+            <div class="m-block-title">
+              <span class="m-step-badge">{{ sectionIndex + 1 }}</span>
+              <h2>{{ currentSection?.titre }}</h2>
             </div>
 
-            <textarea
-              v-if="champ.type === 'textarea'"
-              v-model="fillSession.answers[champ.id]"
-              class="m-textarea"
-              :class="{ 'm-textarea--error': Boolean(fieldErrors[champ.id]) }"
-              rows="4"
-              :placeholder="`Saisie ${champ.label.toLowerCase()}`"
-            />
-            <input
-              v-else
-              v-model="fillSession.answers[champ.id]"
-              :type="inputType(champ.type)"
-              class="m-input"
-              :class="{ 'm-input--error': Boolean(fieldErrors[champ.id]) }"
-              :placeholder="placeholderFor(champ.type)"
-            />
-            <p v-if="fieldErrors[champ.id]" class="m-error-msg">{{ fieldErrors[champ.id] }}</p>
-          </div>
-        </section>
+            <div v-for="(champ, idx) in currentChamps" :key="champ.id" class="m-question">
+              <div class="m-question__num">Q{{ globalIndexStart + idx + 1 }}</div>
+              <div class="m-question__label">
+                {{ champ.label }}
+                <span v-if="champ.required" style="color: var(--m-danger)">*</span>
+              </div>
+
+              <textarea
+                v-if="champ.type === 'textarea'"
+                v-model="fillSession.answers[champ.id]"
+                class="m-textarea"
+                :class="{ 'm-textarea--error': Boolean(fieldErrors[champ.id]) }"
+                rows="4"
+                :placeholder="`Saisie ${champ.label.toLowerCase()}`"
+              />
+              <input
+                v-else
+                v-model="fillSession.answers[champ.id]"
+                :type="inputType(champ.type)"
+                class="m-input"
+                :class="{ 'm-input--error': Boolean(fieldErrors[champ.id]) }"
+                :placeholder="placeholderFor(champ.type)"
+              />
+              <p v-if="fieldErrors[champ.id]" class="m-error-msg">{{ fieldErrors[champ.id] }}</p>
+            </div>
+          </section>
+        </transition>
       </template>
     </div>
 
@@ -80,6 +82,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMobileFormDemo } from '../../composables/useMobileFormDemo'
+import { validateField } from '../../lib/utils/validators'
 
 const route = useRoute()
 const router = useRouter()
@@ -149,8 +152,9 @@ function validateCurrent(): boolean {
   let ok = true
   const a = fillSession.value?.answers || {}
   for (const c of currentChamps.value) {
-    if (c.required && !String(a[c.id] || '').trim()) {
-      fieldErrors[c.id] = 'Ce champ est obligatoire.'
+    const msg = validateField(a[c.id], c)
+    if (msg) {
+      fieldErrors[c.id] = msg
       ok = false
     }
   }

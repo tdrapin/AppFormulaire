@@ -5,6 +5,18 @@ function ensureClient() {
   return supabase
 }
 
+/**
+ * Génère un nom unique horodaté pour une instance.
+ * Format : "Rapport_2025-05-13_11h30m45"
+ */
+function generateInstanceName() {
+  const now = new Date()
+  const pad = (n) => String(n).padStart(2, '0')
+  const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+  const time = `${pad(now.getHours())}h${pad(now.getMinutes())}m${pad(now.getSeconds())}`
+  return `Rapport_${date}_${time}`
+}
+
 function parseTemplateHtml(gabarit) {
   const css = gabarit.css_content || ''
   const html = gabarit.html_content || ''
@@ -152,6 +164,7 @@ async function createInstance(formId, donneesJson, userId) {
   const client = ensureClient()
   const payload = {
     formulaire_id: formId,
+    nom: generateInstanceName(),
     donnees_json: donneesJson
   }
 
@@ -162,7 +175,7 @@ async function createInstance(formId, donneesJson, userId) {
   const { data, error } = await client
     .from('instances')
     .insert(payload)
-    .select('id, formulaire_id, donnees_json, user_id, created_at')
+    .select('id, formulaire_id, nom, donnees_json, user_id, created_at')
     .single()
 
   if (error) throw error

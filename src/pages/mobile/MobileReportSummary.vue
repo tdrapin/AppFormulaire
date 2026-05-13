@@ -6,7 +6,7 @@
       </button>
       <div class="m-header__titles">
         <h1 class="m-header__title">Résumé</h1>
-        <p class="m-header__subtitle">Vérification avant génération</p>
+        <p class="m-header__subtitle">Vérification avant enregistrement</p>
       </div>
     </header>
 
@@ -41,7 +41,7 @@
 
     <div v-if="!banner && form && fillSession" class="m-footer-actions">
       <button type="button" class="m-btn m-btn--primary" :disabled="busy" @click="generate">
-        {{ busy ? 'Génération…' : 'Générer le document' }}
+        {{ busy ? 'Enregistrement…' : 'Enregistrer le rapport' }}
       </button>
     </div>
   </div>

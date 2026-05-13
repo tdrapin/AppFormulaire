@@ -11,6 +11,18 @@ function uid() {
   return `m_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`
 }
 
+/**
+ * Génère un nom unique horodaté pour une instance.
+ * Format : "Rapport_2025-05-13_11h30m45"
+ */
+function generateInstanceName() {
+  const now = new Date()
+  const pad = (n) => String(n).padStart(2, '0')
+  const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+  const time = `${pad(now.getHours())}h${pad(now.getMinutes())}m${pad(now.getSeconds())}`
+  return `Rapport_${date}_${time}`
+}
+
 function defaultForms() {
   return [
     {
@@ -203,6 +215,7 @@ export function useMobileFormDemo() {
     const client = resolveClientLabel(fillSession.value.answers, f)
     const rep = {
       id: uid(),
+      nom: generateInstanceName(),
       formId: f.id,
       formTitre: f.schema_json.titre || f.nom,
       client: String(client).slice(0, 80) || '—',
