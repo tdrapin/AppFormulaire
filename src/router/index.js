@@ -27,11 +27,6 @@ const routes = [
     component: () => import('../pages/Admin.vue')
   },
   {
-    path: '/test-lab',
-    name: 'TestLab',
-    component: () => import('../pages/TestLab.vue')
-  },
-  {
     path: '/mobile',
     component: () => import('../layouts/MobileAppLayout.vue'),
     children: [

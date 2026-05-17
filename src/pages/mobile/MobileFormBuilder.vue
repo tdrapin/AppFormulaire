@@ -67,13 +67,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useMobileFormDemo } from '../../composables/useMobileFormDemo'
+import SupabaseDataService from '../../lib/services/SupabaseDataService'
 import { isSupabaseConfigured } from '../../lib/supabaseClient'
-import { ensureRemoteFormulaireForMobileForm } from '../../lib/mobileSupabaseSync'
 
 const route = useRoute()
 const router = useRouter()
-const { formById, addForm, updateForm } = useMobileFormDemo()
 
 const titre = ref('')
 const description = ref('')
@@ -105,28 +103,38 @@ function goBack() {
   router.push({ name: 'MobileFormList' })
 }
 
-onMounted(() => {
+onMounted(async () => {
   const id = editFormId.value
   if (isEdit.value && id) {
-    const f = formById(id)
-    if (!f) {
-      pageError.value = 'Formulaire introuvable.'
-      return
-    }
-    titre.value = f.schema_json?.titre || f.nom
-    description.value = f.description || ''
-    const flat = []
-    for (const sec of f.schema_json?.sections || []) {
-      for (const c of sec.champs || []) {
-        flat.push({ ...c })
+    try {
+      if (!isSupabaseConfigured()) {
+        pageError.value = 'Supabase n\'est pas configuré.'
+        return
       }
+      const f = await SupabaseDataService.getFormById(id)
+      if (!f) {
+        pageError.value = 'Formulaire introuvable.'
+        return
+      }
+      titre.value = f.schema_json?.titre || f.nom
+      description.value = f.schema_json?.description || ''
+      const flat = []
+      for (const sec of f.schema_json?.sections || []) {
+        for (const c of sec.champs || []) {
+          flat.push({ ...c })
+        }
+      }
+      questions.value = flat.length ? flat : []
+    } catch (e) {
+      pageError.value = 'Erreur lors du chargement du formulaire.'
     }
-    questions.value = flat.length ? flat : []
   }
   if (!questions.value.length) addQuestion()
 })
 
 async function onContinue() {
+  if (saving.value) return
+
   pageError.value = ''
   if (!titre.value.trim()) {
     pageError.value = 'Indiquez un titre pour le formulaire.'
@@ -139,6 +147,11 @@ async function onContinue() {
   }
   if (!questions.value.length) {
     pageError.value = 'Ajoutez au moins une question.'
+    return
+  }
+
+  if (!isSupabaseConfigured()) {
+    pageError.value = 'Supabase n\'est pas configuré. Vérifiez vos variables d\'environnement.'
     return
   }
 
@@ -163,32 +176,18 @@ async function onContinue() {
       ]
     }
 
-    let targetId = ''
     if (isEdit.value && editFormId.value) {
-      targetId = editFormId.value
-      updateForm(editFormId.value, {
+      await SupabaseDataService.updateForm(editFormId.value, {
         nom: schema.titre,
-        description: schema.description,
-        statut: 'complet',
         schema_json: schema
       })
     } else {
-      targetId = addForm(schema)
+      await SupabaseDataService.createForm(schema.titre, schema)
     }
 
-    if (isSupabaseConfigured()) {
-      const f = formById(targetId)
-      if (f) {
-        try {
-          await ensureRemoteFormulaireForMobileForm(f, persist)
-        } catch (e) {
-          pageError.value = e?.message || 'Synchronisation Supabase impossible.'
-          return
-        }
-      }
-    }
-
-    router.push({ name: 'MobileFormList' })
+    await router.push({ name: 'MobileFormList' })
+  } catch (e) {
+    pageError.value = e?.message || 'Erreur lors de l\'enregistrement.'
   } finally {
     saving.value = false
   }

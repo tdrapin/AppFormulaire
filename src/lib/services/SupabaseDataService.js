@@ -162,10 +162,13 @@ async function getFormIdsWithTemplate() {
 
 async function createInstance(formId, donneesJson, userId) {
   const client = ensureClient()
+  // Ajouter le nom horodaté dans donnees_json
   const payload = {
     formulaire_id: formId,
-    nom: generateInstanceName(),
-    donnees_json: donneesJson
+    donnees_json: {
+      ...donneesJson,
+      _nom: generateInstanceName()
+    }
   }
 
   if (userId) {
@@ -175,7 +178,7 @@ async function createInstance(formId, donneesJson, userId) {
   const { data, error } = await client
     .from('instances')
     .insert(payload)
-    .select('id, formulaire_id, nom, donnees_json, user_id, created_at')
+    .select('id, formulaire_id, donnees_json, user_id, created_at')
     .single()
 
   if (error) throw error

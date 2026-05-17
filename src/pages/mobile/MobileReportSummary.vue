@@ -13,7 +13,7 @@
     <div class="m-body">
       <div v-if="banner" class="m-banner-error">{{ banner }}</div>
 
-      <template v-else-if="form && fillSession">
+      <template v-else-if="form && Object.keys(answers).length">
         <div class="m-card" style="display: flex; gap: 16px; align-items: center">
           <div class="m-hero-doc" aria-hidden="true" />
           <div style="flex: 1; min-width: 0">
@@ -39,7 +39,7 @@
       </template>
     </div>
 
-    <div v-if="!banner && form && fillSession" class="m-footer-actions">
+    <div v-if="!banner && form && Object.keys(answers).length" class="m-footer-actions">
       <button type="button" class="m-btn m-btn--primary" :disabled="busy" @click="generate">
         {{ busy ? 'Enregistrement…' : 'Enregistrer le rapport' }}
       </button>
@@ -50,17 +50,18 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useMobileFormDemo } from '../../composables/useMobileFormDemo'
+import SupabaseDataService from '../../lib/services/SupabaseDataService'
+import { isSupabaseConfigured } from '../../lib/supabaseClient'
 
 const route = useRoute()
 const router = useRouter()
-const { formById, fillSession, saveReportFromSession } = useMobileFormDemo()
 
+const form = ref(null)
+const answers = ref({})
 const banner = ref('')
 const busy = ref(false)
 
 const formId = computed(() => route.params.formId as string)
-const form = computed(() => formById(formId.value))
 
 const sections = computed(() => form.value?.schema_json?.sections || [])
 
@@ -76,7 +77,7 @@ function sectionLabel(sec) {
 }
 
 function displayAnswer(id: string) {
-  const v = fillSession.value?.answers?.[id]
+  const v = answers.value[id]
   if (v === undefined || v === null || String(v).trim() === '') return '—'
   return String(v)
 }
@@ -86,20 +87,49 @@ function goBack() {
 }
 
 async function generate() {
+  if (busy.value) return
   busy.value = true
   try {
-    const result = await saveReportFromSession('terminé')
-    const q = { ok: '1' }
-    if (result?.supabase_sync_error) q.sync_err = '1'
-    router.push({ name: 'MobileHistory', query: q })
+    if (!isSupabaseConfigured()) {
+      banner.value = 'Supabase n\'est pas configuré.'
+      return
+    }
+    await SupabaseDataService.createInstance(formId.value, answers.value)
+    await router.push({ name: 'MobileHistory', query: { ok: '1' } })
+  } catch (e) {
+    banner.value = e?.message || 'Erreur lors de l\'enregistrement.'
   } finally {
     busy.value = false
   }
 }
 
-onMounted(() => {
-  if (!fillSession.value || fillSession.value.formId !== formId.value) {
+onMounted(async () => {
+  // Récupérer les réponses depuis le query param
+  const raw = route.query.answers as string
+  if (!raw) {
     banner.value = 'Aucune saisie en cours. Ouvrez un formulaire depuis la liste.'
+    return
+  }
+  try {
+    answers.value = JSON.parse(decodeURIComponent(raw))
+  } catch {
+    banner.value = 'Erreur de lecture des réponses.'
+    return
+  }
+
+  if (!isSupabaseConfigured()) {
+    banner.value = 'Supabase n\'est pas configuré.'
+    return
+  }
+  try {
+    const f = await SupabaseDataService.getFormById(formId.value)
+    if (!f) {
+      banner.value = 'Formulaire introuvable.'
+      return
+    }
+    form.value = f
+  } catch (e) {
+    banner.value = 'Erreur lors du chargement du formulaire.'
   }
 })
 </script>

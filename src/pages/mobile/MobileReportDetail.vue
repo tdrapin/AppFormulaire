@@ -6,22 +6,29 @@
       </button>
       <div class="m-header__titles">
         <h1 class="m-header__title">Détail du rapport</h1>
-        <p class="m-header__subtitle">{{ report?.formTitre || '—' }}</p>
+        <p class="m-header__subtitle">{{ instance?.donnees_json?._nom || instance?.nom || '—' }}</p>
       </div>
     </header>
 
     <div class="m-body">
-      <div v-if="!report" class="m-banner-error">Rapport introuvable.</div>
+      <div v-if="loadError" class="m-banner-error">{{ loadError }}</div>
+      <div v-else-if="!instance" class="m-banner-error">Rapport introuvable.</div>
 
-      <template v-else>
-        <div v-if="report.supabase_sync_error" class="m-banner-error" style="margin-bottom: 12px">
-          Synchronisation Supabase : {{ report.supabase_sync_error }}
-        </div>
+      <template v-else-if="form">
         <div class="m-card m-card--muted">
-          <p style="margin: 0 0 6px; font-size: 0.85rem; color: var(--m-text-muted)">Destinataire</p>
-          <p style="margin: 0; font-weight: 600">{{ report.client }}</p>
+          <p style="margin: 0 0 6px; font-size: 0.85rem; color: var(--m-text-muted)">Nom</p>
+          <p style="margin: 0; font-weight: 600">{{ instance.donnees_json?._nom || instance.nom }}</p>
           <p style="margin: 10px 0 0; font-size: 0.85rem; color: var(--m-text-muted)">Date</p>
-          <p style="margin: 0">{{ formatDate(report.dateISO) }}</p>
+          <p style="margin: 0">{{ formatDate(instance.created_at) }}</p>
+        </div>
+
+        <!-- Sélection du gabarit -->
+        <div class="m-card">
+          <label class="m-label" for="template-select">Gabarit d'export</label>
+          <select id="template-select" v-model="selectedTemplateId" class="m-select">
+            <option value="">Gabarit par défaut</option>
+            <option v-for="t in templates" :key="t.id" :value="t.id">{{ t.nom }}</option>
+          </select>
         </div>
 
         <section v-for="sec in labelSections" :key="sec.id" class="m-card">
@@ -37,16 +44,15 @@
       </template>
     </div>
 
-    <div v-if="report" class="m-footer-actions m-footer-actions--split">
+    <div v-if="instance" class="m-footer-actions m-footer-actions--split">
       <button type="button" class="m-btn m-btn--ghost" :disabled="isPdfExporting" @click="exportReportPdf">
         {{ isPdfExporting ? 'PDF…' : 'Exporter en PDF' }}
       </button>
     </div>
 
-    <div v-if="report" ref="pdfRoot" class="m-pdf-offscreen" aria-hidden="true">
-      <h1>{{ report.formTitre }}</h1>
-      <p class="meta">Client : {{ report.client }}</p>
-      <p class="meta">Date : {{ formatDate(report.dateISO) }}</p>
+    <div v-if="instance" ref="pdfRoot" class="m-pdf-offscreen" aria-hidden="true">
+      <h1>{{ instance.donnees_json?._nom || instance.nom }}</h1>
+      <p class="meta">Date : {{ formatDate(instance.created_at) }}</p>
       <section v-for="sec in labelSections" :key="sec.id" class="pdf-sec">
         <h2>{{ sec.titre }}</h2>
         <div v-for="row in sec.rows" :key="row.id" class="pdf-row">
@@ -59,27 +65,36 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useMobileFormDemo } from '../../composables/useMobileFormDemo'
+import SupabaseDataService from '../../lib/services/SupabaseDataService'
+import { isSupabaseConfigured } from '../../lib/supabaseClient'
 import { buildPdfFilename, exportHtmlElementToPdf } from '../../composables/usePdfExport'
+import { buildMobileReportPdfHtml } from '../../lib/renderMobileReportPdfHtml'
 
 const route = useRoute()
 const router = useRouter()
-const { reports, formById } = useMobileFormDemo()
 
+const instance = ref(null)
+const form = ref(null)
+const templates = ref([])
+const selectedTemplateId = ref('')
+const loadError = ref('')
 const pdfRoot = ref(null)
 const isPdfExporting = ref(false)
-const pdfError = ref('')
 
 const reportId = computed(() => route.params.reportId as string)
-const report = computed(() => reports.value.find(r => r.id === reportId.value))
+
+const selectedTemplate = computed(() =>
+  templates.value.find(t => t.id === selectedTemplateId.value) || null
+)
 
 const labelSections = computed(() => {
-  const rep = report.value
-  if (!rep) return []
-  const f = formById(rep.formId)
-  const sections = f?.schema_json?.sections || []
+  const inst = instance.value
+  const f = form.value
+  if (!inst || !f) return []
+  const sections = f.schema_json?.sections || []
+  const donnees = inst.donnees_json || {}
   return sections.map((sec, idx) => ({
     id: sec.id,
     titre: sec.titre,
@@ -87,7 +102,7 @@ const labelSections = computed(() => {
     rows: (sec.champs || []).map(c => ({
       id: c.id,
       label: c.label,
-      value: formatVal(rep.answers?.[c.id])
+      value: formatVal(donnees[c.id])
     }))
   }))
 })
@@ -106,22 +121,57 @@ function formatDate(iso: string) {
 }
 
 async function exportReportPdf() {
-  if (!report.value || !pdfRoot.value) return
-  pdfError.value = ''
+  if (!instance.value) return
   try {
     isPdfExporting.value = true
     await nextTick()
+    const html = buildMobileReportPdfHtml(instance.value, form.value, selectedTemplate.value)
+    const wrap = document.createElement('div')
+    wrap.innerHTML = html
+    document.body.appendChild(wrap)
     await exportHtmlElementToPdf(
-      pdfRoot.value,
-      buildPdfFilename(report.value.formTitre || 'rapport', 'rapport')
+      wrap,
+      buildPdfFilename(instance.value.donnees_json?._nom || instance.value.nom || 'rapport', 'rapport')
     )
+    document.body.removeChild(wrap)
   } catch (e) {
-    pdfError.value = e?.message || "Impossible d'exporter le PDF."
-    window.alert(pdfError.value)
+    window.alert(e?.message || "Impossible d'exporter le PDF.")
   } finally {
     isPdfExporting.value = false
   }
 }
+
+onMounted(async () => {
+  if (!isSupabaseConfigured()) {
+    loadError.value = 'Supabase n\'est pas configuré.'
+    return
+  }
+  try {
+    const client = (await import('../../lib/supabaseClient')).supabase
+    const { data: inst, error } = await client
+      .from('instances')
+      .select('*')
+      .eq('id', reportId.value)
+      .single()
+
+    if (error || !inst) {
+      loadError.value = 'Rapport introuvable.'
+      return
+    }
+    instance.value = inst
+
+    const f = await SupabaseDataService.getFormById(inst.formulaire_id)
+    if (f) {
+      form.value = f
+      // Charger les gabarits associés à ce formulaire
+      try {
+        templates.value = await SupabaseDataService.getFormTemplates(f.id)
+      } catch { /* pas de gabarits */ }
+    }
+  } catch (e) {
+    loadError.value = 'Erreur lors du chargement du rapport.'
+  }
+})
 </script>
 
 <style scoped>
