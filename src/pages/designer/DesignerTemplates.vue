@@ -671,8 +671,17 @@ async function onSave() {
   min-height: 60px;
   min-width: 120px;
   max-width: 100%;
+  flex: 1 1 22%;
   transition: border-color 0.15s;
   overflow: hidden;
+}
+
+/* Responsive : 4 colonnes max, stack sur mobile */
+@media (max-width: 480px) {
+  .tpl-col {
+    flex: 1 1 45%;
+    min-width: 100px;
+  }
 }
 .tpl-col:hover {
   border-color: #93c5fd;

@@ -61,11 +61,11 @@ const concepteurTabs = [
     match: ['DesignerFormList', 'DesignerFormNew', 'DesignerFormEdit']
   },
   {
-    name: 'DesignerInstances',
+    name: 'DesignerHistory',
     label: 'Instances',
-    to: { name: 'DesignerInstances' },
+    to: { name: 'MobileHistory' },
     icon: 'fa-solid fa-database',
-    match: ['DesignerInstances']
+    match: ['MobileHistory', 'MobileReportDetail', 'MobileBatchDetail']
   },
   {
     name: 'Tools',

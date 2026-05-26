@@ -3,7 +3,7 @@
  * Fond #f8f9fc, cartes glassmorphism, dégradés multi-couleurs
  */
 .mobile-app {
-  --m-bg: #f8f9fc;
+  --m-bg: #ffffff;
   --m-surface: rgba(255, 255, 255, 0.85);
   --m-text: #1e293b;
   --m-text-muted: #64748b;
@@ -23,7 +23,7 @@
   --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   min-height: 100%;
-  background: var(--m-bg);
+  background: #ffffff;
   color: var(--m-text);
   font-family: var(--font-sans);
   font-size: 15px;

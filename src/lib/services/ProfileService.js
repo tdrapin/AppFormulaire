@@ -1,114 +1,109 @@
 /**
- * ProfileService — Gestion des utilisateurs via l'API Supabase Auth Admin
- * 
- * ⚠️ ATTENTION : L'API Admin de Supabase (client.auth.admin.*) nécessite
- * une clé `service_role` et NON la clé anon. Elle ne doit être utilisée
- * que depuis un environnement sécurisé (backend, Edge Function, ou
- * configuration spéciale du client Supabase avec la clé service_role).
- * 
- * En environnement client (navigateur), ces appels échoueront avec
- * une erreur 401/403 si seule la clé anon est configurée.
- * 
- * Solution recommandée : déplacer ces fonctions vers une Edge Function
- * Supabase ou un backend sécurisé.
- * 
- * Le rôle est stocké dans user.user_metadata.role (plus de table profiles).
+ * ProfileService — Gestion des utilisateurs via Edge Function Supabase
+ *
+ * Cette version appelle une Edge Function Supabase qui utilise la clé
+ * service_role côté serveur pour les opérations Admin Auth.
+ *
+ * ⚠️ Configuration requise dans Supabase :
+ *   1. Déployer la fonction 'admin-users' (supabase/functions/admin-users/index.ts)
+ *   2. Définir la variable d'environnement VITE_SUPABASE_FUNCTIONS_URL
+ *      dans le fichier .env (ex: https://xxx.supabase.co/functions/v1)
+ *   3. L'Edge Function vérifie que l'utilisateur appelant a le rôle "admin"
+ *      dans user_metadata avant d'exécuter les opérations.
  */
-import { assertSupabaseConfigured, supabase } from '../supabaseClient'
+import { supabase, assertSupabaseConfigured } from '../supabaseClient'
 
-function ensureClient() {
+const FUNCTIONS_URL = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL || ''
+
+async function callFunction(method, path, body = null) {
   assertSupabaseConfigured()
-  return supabase
+
+  if (!FUNCTIONS_URL) {
+    throw new Error(
+      'VITE_SUPABASE_FUNCTIONS_URL non défini. ' +
+      'Ajoutez VITE_SUPABASE_FUNCTIONS_URL dans .env ' +
+      '(ex: https://xxx.supabase.co/functions/v1)'
+    )
+  }
+
+  // Récupérer le token JWT de l'utilisateur connecté
+  const { data: { session } } = await supabase.auth.getSession()
+  const token = session?.access_token
+
+  if (!token) {
+    throw new Error('Vous devez être connecté pour gérer les comptes.')
+  }
+
+  const url = `${FUNCTIONS_URL}/admin-users${path || ''}`
+  const options = {
+    method,
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  }
+
+  if (body) {
+    options.body = JSON.stringify(body)
+  }
+
+  const res = await fetch(url, options)
+  const data = await res.json()
+
+  if (!res.ok) {
+    throw new Error(data?.error || `Erreur ${res.status}`)
+  }
+
+  return data
 }
 
 /**
- * Récupère tous les utilisateurs via l'API Auth Admin.
- * Nécessite les droits admin (clé service_role).
+ * Récupère tous les utilisateurs via l'Edge Function.
  */
 async function getAllUsers() {
-  const client = ensureClient()
-  const { data, error } = await client.auth.admin.listUsers()
-  if (error) throw error
-  // Filtrer les infos utiles + extraire le rôle depuis user_metadata
-  return (data?.users || []).map(u => ({
-    id: u.id,
-    email: u.email,
-    full_name: u.user_metadata?.full_name || '',
-    role: u.user_metadata?.role || 'terrain',
-    created_at: u.created_at
-  }))
+  const data = await callFunction('GET', '')
+  return data.users || []
 }
 
 /**
- * Crée un nouvel utilisateur avec email, mot de passe, nom et rôle.
+ * Crée un nouvel utilisateur.
  */
 async function createUser(email, password, fullName, role) {
-  const client = ensureClient()
-  const { data, error } = await client.auth.admin.createUser({
+  const data = await callFunction('POST', '', {
     email,
     password,
-    email_confirm: true,
-    user_metadata: {
-      full_name: fullName || '',
-      role: role || 'terrain'
-    }
+    full_name: fullName || '',
+    role: role || 'terrain'
   })
-  if (error) throw error
-  if (!data?.user) throw new Error('Échec de la création de l\'utilisateur')
-  return {
-    id: data.user.id,
-    email: data.user.email,
-    full_name: data.user.user_metadata?.full_name || '',
-    role: data.user.user_metadata?.role || 'terrain'
-  }
+  return data.user
 }
 
 /**
- * Met à jour le rôle d'un utilisateur via l'API Auth Admin.
+ * Met à jour le rôle d'un utilisateur.
  */
 async function updateUserRole(userId, newRole) {
-  const client = ensureClient()
-  const { data, error } = await client.auth.admin.updateUserById(userId, {
-    user_metadata: { role: newRole }
+  const data = await callFunction('PUT', `?id=${userId}`, {
+    role: newRole
   })
-  if (error) throw error
-  return {
-    id: data.user.id,
-    email: data.user.email,
-    full_name: data.user.user_metadata?.full_name || '',
-    role: data.user.user_metadata?.role || 'terrain'
-  }
+  return data.user
 }
 
 /**
  * Met à jour les informations d'un utilisateur (nom, email).
  */
 async function updateUser(userId, updates) {
-  const client = ensureClient()
-  const metadataUpdates = {}
-  if (updates.full_name !== undefined) metadataUpdates.full_name = updates.full_name
-
-  const payload = {}
-  if (updates.email !== undefined) payload.email = updates.email
-  if (Object.keys(metadataUpdates).length > 0) payload.user_metadata = metadataUpdates
-
-  const { data, error } = await client.auth.admin.updateUserById(userId, payload)
-  if (error) throw error
-  return {
-    id: data.user.id,
-    email: data.user.email,
-    full_name: data.user.user_metadata?.full_name || '',
-    role: data.user.user_metadata?.role || 'terrain'
-  }
+  const data = await callFunction('PUT', `?id=${userId}`, {
+    email: updates.email,
+    full_name: updates.full_name
+  })
+  return data.user
 }
 
 /**
- * Supprime un utilisateur (auth.users + cascade).
+ * Supprime un utilisateur.
  */
 async function deleteUser(userId) {
-  const client = ensureClient()
-  const { error } = await client.auth.admin.deleteUser(userId)
-  if (error) throw error
+  await callFunction('DELETE', `?id=${userId}`)
   return true
 }
 
