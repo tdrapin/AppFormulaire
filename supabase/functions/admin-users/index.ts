@@ -4,11 +4,11 @@
  * Cette fonction utilise la clé service_role (disponible via Supabase
  * en interne) pour effectuer des opérations d'administration sur Auth.
  *
- * Endpoints :
- *   GET    /admin-users          → liste tous les utilisateurs
- *   POST   /admin-users          → crée un utilisateur
- *   PUT    /admin-users?id=xxx   → modifie un utilisateur
- *   DELETE /admin-users?id=xxx   → supprime un utilisateur
+ * Endpoints (via supabase.functions.invoke) :
+ *   method: 'GET'              → liste tous les utilisateurs
+ *   method: 'POST', body: {...} → crée un utilisateur
+ *   method: 'PUT',  body: { id, ... } → modifie un utilisateur
+ *   method: 'DELETE', body: { id }    → supprime un utilisateur
  *
  * Sécurité : seuls les utilisateurs authentifiés avec le rôle "admin"
  * dans user_metadata peuvent appeler cette fonction.
@@ -17,7 +17,19 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+// Headers CORS pour les requêtes navigateur
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
 serve(async (req: Request) => {
+  // Répondre aux requêtes OPTIONS (preflight CORS)
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
   try {
     // ── Authentification : vérifier le token JWT ──────────────
     const authHeader = req.headers.get('Authorization') || ''
@@ -26,11 +38,11 @@ serve(async (req: Request) => {
     if (!token) {
       return new Response(JSON.stringify({ error: 'Token manquant' }), {
         status: 401,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    // Créer un client Supabase avec le token de l'utilisateur
+    // Créer un client Supabase avec la clé service_role
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
 
@@ -46,7 +58,7 @@ serve(async (req: Request) => {
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Token invalide' }), {
         status: 401,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
@@ -54,21 +66,19 @@ serve(async (req: Request) => {
     if (role !== 'admin') {
       return new Response(JSON.stringify({ error: 'Accès refusé : rôle admin requis' }), {
         status: 403,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
     // ── Routage selon la méthode HTTP ─────────────────────────
     const method = req.method
-    const url = new URL(req.url)
-    const userId = url.searchParams.get('id')
 
     if (method === 'GET') {
       // Liste tous les utilisateurs
       const { data, error } = await supabase.auth.admin.listUsers()
       if (error) throw error
 
-      const users = (data?.users || []).map(u => ({
+      const users = (data?.users || []).map((u: any) => ({
         id: u.id,
         email: u.email,
         full_name: u.user_metadata?.full_name || '',
@@ -78,19 +88,22 @@ serve(async (req: Request) => {
 
       return new Response(JSON.stringify({ users }), {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
+    // Lire le body pour POST, PUT, DELETE
+    const body = await req.json().catch(() => ({}))
+    const userId = body.id
+
     if (method === 'POST') {
       // Créer un utilisateur
-      const body = await req.json()
       const { email, password, full_name, role: userRole } = body
 
       if (!email || !password) {
         return new Response(JSON.stringify({ error: 'Email et mot de passe requis' }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
@@ -116,19 +129,18 @@ serve(async (req: Request) => {
         }
       }), {
         status: 201,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
     if (method === 'PUT') {
       if (!userId) {
-        return new Response(JSON.stringify({ error: 'Paramètre id requis' }), {
+        return new Response(JSON.stringify({ error: 'Propriété id requise dans le body' }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
-      const body = await req.json()
       const payload: any = {}
 
       if (body.email !== undefined) payload.email = body.email
@@ -150,15 +162,15 @@ serve(async (req: Request) => {
         }
       }), {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
     if (method === 'DELETE') {
       if (!userId) {
-        return new Response(JSON.stringify({ error: 'Paramètre id requis' }), {
+        return new Response(JSON.stringify({ error: 'Propriété id requise dans le body' }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
@@ -167,19 +179,19 @@ serve(async (req: Request) => {
 
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
     return new Response(JSON.stringify({ error: 'Méthode non supportée' }), {
       status: 405,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
 
-  } catch (err) {
+  } catch (err: any) {
     return new Response(JSON.stringify({ error: err.message || 'Erreur interne' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }
 })
