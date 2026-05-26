@@ -1,0 +1,6 @@
+id,formulaire_id,donnees_json,nom,created_at
+10000000-0000-0000-0000-000000000001,00000000-0000-0000-0000-000000000001,"{""client"":""Dupont"",""date"":""2026-05-26"",""description"":""Maintenance préventive"",""priorite"":""Haute""}",Rapport_20260526_001,2026-05-26T08:00:00Z
+10000000-0000-0000-0000-000000000002,00000000-0000-0000-0000-000000000001,"{""client"":""Martin"",""date"":""2026-05-25"",""description"":""Réparation urgence"",""priorite"":""Critique""}",Rapport_20260525_002,2026-05-25T14:30:00Z
+10000000-0000-0000-0000-000000000003,00000000-0000-0000-0000-000000000001,"{""client"":""Bernard"",""date"":""2026-05-24"",""description"":""Installation nouvel équipement"",""priorite"":""Normale""}",Rapport_20260524_003,2026-05-24T10:00:00Z
+10000000-0000-0000-0000-000000000004,00000000-0000-0000-0000-000000000002,"{""equipement"":""Extincteur A"",""date_controle"":""2026-05-26"",""conforme"":""Oui"",""remarques"":""Aucune anomalie""}",Checklist_20260526_001,2026-05-26T09:00:00Z
+10000000-0000-0000-0000-000000000005,00000000-0000-0000-0000-000000000002,"{""equipement"":""Porte coupe-feu"",""date_controle"":""2026-05-25"",""conforme"":""Non"",""remarques"":""Réparation nécessaire""}",Checklist_20260525_002,2026-05-25T16:00:00Z
