@@ -25,13 +25,13 @@
           <i class="fa-solid fa-chevron-right home-modern__tile-arrow" />
         </router-link>
 
-        <router-link class="home-modern__tile" :to="{ name: 'MobileFormNew' }">
+        <router-link class="home-modern__tile" :to="{ name: 'DesignerFormList' }">
           <span class="home-modern__tile-icon home-modern__tile-icon--purple">
-            <i class="fa-solid fa-plus" />
+            <i class="fa-solid fa-pen-ruler" />
           </span>
           <div class="home-modern__tile-text">
-            <h2>Nouveau formulaire</h2>
-            <p>Créez un formulaire avec vos champs personnalisés.</p>
+            <h2>Concepteur</h2>
+            <p>Créez et gérez vos formulaires, versions et gabarits.</p>
           </div>
           <i class="fa-solid fa-chevron-right home-modern__tile-arrow" />
         </router-link>

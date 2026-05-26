@@ -40,10 +40,12 @@
       <!-- État vide -->
       <div v-else-if="!forms.length" class="m-empty">
         <div class="m-empty__icon"><i class="fa-solid fa-file-pen" /></div>
-        <strong>Aucun formulaire</strong>
-        <span>Créez votre premier formulaire pour démarrer les saisies terrain.</span>
+        <strong>Aucun formulaire disponible</strong>
+        <span v-if="isTerrain">Aucun formulaire n'a encore été créé. Veuillez contacter votre administrateur ou revenir plus tard.</span>
+        <span v-else>Créez votre premier formulaire pour démarrer les saisies terrain.</span>
         <router-link
-          :to="{ name: 'MobileFormNew' }"
+          v-if="!isTerrain"
+          :to="{ name: 'DesignerFormNew' }"
           class="m-btn m-btn--primary"
           style="display: inline-block; width: auto; padding: 12px 24px; text-decoration: none;"
         >
@@ -81,7 +83,8 @@
           </div>
         </router-link>
         <router-link
-          :to="{ name: 'MobileFormEdit', params: { formId: f.id } }"
+          v-if="!isTerrain"
+          :to="{ name: 'DesignerFormEdit', params: { formId: f.id } }"
           class="m-card--form__edit"
         >
           <i class="fa-solid fa-pen" aria-hidden="true" /> Modifier
@@ -89,9 +92,9 @@
       </div>
     </div>
 
-    <div v-if="forms.length" class="m-footer-actions">
+    <div v-if="forms.length && !isTerrain" class="m-footer-actions">
       <router-link
-        :to="{ name: 'MobileFormNew' }"
+        :to="{ name: 'DesignerFormNew' }"
         class="m-btn m-btn--primary"
         style="text-align: center; text-decoration: none;"
       >
@@ -105,6 +108,9 @@
 import { computed, onMounted, ref } from 'vue'
 import SupabaseDataService from '../../lib/services/SupabaseDataService'
 import { isSupabaseConfigured } from '../../lib/supabaseClient'
+import { useAuth } from '../../composables/useAuth'
+
+const { isTerrain } = useAuth()
 
 const forms = ref([])
 const instances = ref([])

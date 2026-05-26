@@ -5,8 +5,8 @@
         <i class="fa-solid fa-arrow-left" aria-hidden="true" />
       </button>
       <div class="m-header__titles">
-        <h1 class="m-header__title">{{ form?.schema_json?.titre || 'Saisie du rapport' }}</h1>
-        <p class="m-header__subtitle">{{ form?.schema_json?.sousTitre || form?.nom || '—' }}</p>
+        <h1 class="m-header__title">{{ form?.schema_json?.meta?.title || form?.schema_json?.titre || 'Saisie du rapport' }}</h1>
+        <p class="m-header__subtitle">{{ form?.schema_json?.description || form?.nom || '—' }}</p>
       </div>
     </header>
 
@@ -42,9 +42,9 @@
               <h2>{{ currentSection?.titre }}</h2>
             </div>
 
-            <div v-for="(champ, idx) in currentChamps" :key="champ.id" class="m-question">
-              <div class="m-question__num">Q{{ globalIndexStart + idx + 1 }}</div>
-              <div class="m-question__label">
+            <div v-for="(champ, idx) in currentChamps" :key="champ.id" class="m-field">
+              <div class="m-field__num">{{ globalIndexStart + idx + 1 }}.</div>
+              <div class="m-field__label">
                 {{ champ.label }}
                 <span v-if="champ.required" style="color: var(--m-danger)">*</span>
               </div>
@@ -102,7 +102,7 @@ const sections = computed(() => form.value?.schema_json?.sections || [])
 const sectionIndex = ref(0)
 
 const currentSection = computed(() => sections.value[sectionIndex.value])
-const currentChamps = computed(() => currentSection.value?.champs || [])
+const currentChamps = computed(() => currentSection.value?.fields || currentSection.value?.champs || [])
 
 const progressWidth = computed(() => {
   const n = sections.value.length
@@ -113,7 +113,7 @@ const progressWidth = computed(() => {
 const globalIndexStart = computed(() => {
   let n = 0
   for (let i = 0; i < sectionIndex.value; i++) {
-    n += (sections.value[i]?.champs || []).length
+    n += (sections.value[i]?.fields || sections.value[i]?.champs || []).length
   }
   return n
 })
@@ -121,7 +121,7 @@ const globalIndexStart = computed(() => {
 const totalRequired = computed(() => {
   let n = 0
   for (const s of sections.value) {
-    for (const c of s.champs || []) {
+    for (const c of s.fields || s.champs || []) {
       if (c.required) n++
     }
   }
@@ -131,7 +131,7 @@ const totalRequired = computed(() => {
 const filledRequired = computed(() => {
   let n = 0
   for (const s of sections.value) {
-    for (const c of s.champs || []) {
+    for (const c of s.fields || s.champs || []) {
       if (c.required && String(answers[c.id] || '').trim()) n++
     }
   }
@@ -199,7 +199,7 @@ onMounted(async () => {
     form.value = f
     // Initialiser les réponses vides
     for (const sec of f.schema_json?.sections || []) {
-      for (const c of sec.champs || []) {
+      for (const c of sec.fields || sec.champs || []) {
         answers[c.id] = ''
       }
     }

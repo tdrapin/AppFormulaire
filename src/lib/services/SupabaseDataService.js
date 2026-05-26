@@ -6,6 +6,13 @@ function ensureClient() {
 }
 
 /**
+ * Récupère l'ID de l'utilisateur connecté (ou null si anonyme).
+ */
+function getCurrentUserId() {
+  return supabase?.auth?.getSession()?.then(({ data }) => data?.session?.user?.id ?? null) ?? null
+}
+
+/**
  * Génère un nom unique horodaté pour une instance.
  * Format : "Rapport_2025-05-13_11h30m45"
  */
@@ -17,168 +24,88 @@ function generateInstanceName() {
   return `Rapport_${date}_${time}`
 }
 
-function parseTemplateHtml(gabarit) {
-  const css = gabarit.css_content || ''
-  const html = gabarit.html_content || ''
-  return `
-    <style>${css}</style>
-    ${html}
-  `
-}
+// ─── Formulaires ───────────────────────────────────────────────
 
 async function getForms() {
   const client = ensureClient()
   const { data, error } = await client
     .from('formulaires')
-    .select('id, nom, schema_json, created_at')
+    .select('id, nom, schema_json, gabarit_actif_id, user_id, created_at')
     .order('created_at', { ascending: false })
 
   if (error) throw error
   return data || []
 }
 
-async function createForm(nom, schemaJson) {
+async function getFormById(formId) {
   const client = ensureClient()
   const { data, error } = await client
     .from('formulaires')
-    .insert({
-      nom,
-      schema_json: schemaJson
-    })
-    .select('id, nom, schema_json, created_at')
+    .select('id, nom, schema_json, gabarit_actif_id, user_id, created_at')
+    .eq('id', formId)
     .single()
 
   if (error) throw error
   return data
 }
 
+async function createForm(nom, schemaJson) {
+  const client = ensureClient()
+  const session = await supabase.auth.getSession()
+  const userId = session?.data?.session?.user?.id ?? null
+
+  const { data, error } = await client
+    .from('formulaires')
+    .insert({
+      nom,
+      schema_json: schemaJson,
+      user_id: userId
+    })
+    .select('id, nom, schema_json, gabarit_actif_id, user_id, created_at')
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+/**
+ * Met à jour un formulaire (sans versionnement).
+ */
 async function updateForm(formId, { nom, schema_json }) {
   const client = ensureClient()
   const payload = {}
   if (nom !== undefined) payload.nom = nom
   if (schema_json !== undefined) payload.schema_json = schema_json
-  if (!Object.keys(payload).length) return null
 
   const { data, error } = await client
     .from('formulaires')
     .update(payload)
     .eq('id', formId)
-    .select('id, nom, schema_json, created_at')
+    .select('id, nom, schema_json, gabarit_actif_id, user_id, created_at')
     .single()
 
   if (error) throw error
   return data
 }
 
-async function createTemplate(nom, htmlContent, cssContent = '') {
+// ─── Instances ─────────────────────────────────────────────────
+
+async function createInstance(formId, donneesJson) {
   const client = ensureClient()
-  const { data, error } = await client
-    .from('gabarits')
-    .insert({
-      nom,
-      html_content: htmlContent,
-      css_content: cssContent
-    })
-    .select('id, nom, html_content, css_content, created_at')
-    .single()
+  const session = await supabase.auth.getSession()
+  const userId = session?.data?.session?.user?.id ?? null
 
-  if (error) throw error
-  return data
-}
-
-async function updateTemplate(gabaritId, { html_content, css_content }) {
-  const client = ensureClient()
-  const payload = {}
-  if (html_content !== undefined) payload.html_content = html_content
-  if (css_content !== undefined) payload.css_content = css_content
-  if (!Object.keys(payload).length) return null
-
-  const { data, error } = await client
-    .from('gabarits')
-    .update(payload)
-    .eq('id', gabaritId)
-    .select('id, nom, html_content, css_content, created_at')
-    .single()
-
-  if (error) throw error
-  return data
-}
-
-async function linkFormTemplate(formulaireId, gabaritId) {
-  const client = ensureClient()
-  const { data, error } = await client
-    .from('formulaire_gabarits')
-    .insert({
-      formulaire_id: formulaireId,
-      gabarit_id: gabaritId
-    })
-    .select('formulaire_id, gabarit_id')
-    .single()
-
-  if (error) throw error
-  return data
-}
-
-async function getFormById(formId) {
-  const client = ensureClient()
-  const { data, error } = await client
-    .from('formulaires')
-    .select('id, nom, schema_json, created_at')
-    .eq('id', formId)
-    .single()
-
-  if (error) throw error
-  return data
-}
-
-async function getFormTemplates(formId) {
-  const client = ensureClient()
-  const { data, error } = await client
-    .from('formulaire_gabarits')
-    .select('gabarits(id, nom, html_content, css_content, created_at)')
-    .eq('formulaire_id', formId)
-
-  if (error) throw error
-
-  return (data || [])
-    .map(item => item.gabarits)
-    .filter(Boolean)
-    .map(gabarit => ({
-      ...gabarit,
-      merged_html: parseTemplateHtml(gabarit)
-    }))
-}
-
-async function getFormIdsWithTemplate() {
-  const client = ensureClient()
-  const { data, error } = await client
-    .from('formulaire_gabarits')
-    .select('formulaire_id')
-
-  if (error) throw error
-
-  return Array.from(new Set((data || []).map(row => row.formulaire_id)))
-}
-
-async function createInstance(formId, donneesJson, userId) {
-  const client = ensureClient()
-  // Ajouter le nom horodaté dans donnees_json
   const payload = {
     formulaire_id: formId,
-    donnees_json: {
-      ...donneesJson,
-      _nom: generateInstanceName()
-    }
-  }
-
-  if (userId) {
-    payload.user_id = userId
+    donnees_json: donneesJson,
+    nom: generateInstanceName(),
+    user_id: userId
   }
 
   const { data, error } = await client
     .from('instances')
     .insert(payload)
-    .select('id, formulaire_id, donnees_json, user_id, created_at')
+    .select('id, formulaire_id, donnees_json, nom, user_id, created_at')
     .single()
 
   if (error) throw error
@@ -189,7 +116,7 @@ async function getInstancesByFormId(formId) {
   const client = ensureClient()
   const { data, error } = await client
     .from('instances')
-    .select('id, formulaire_id, donnees_json, user_id, created_at')
+    .select('id, formulaire_id, donnees_json, nom, user_id, created_at')
     .eq('formulaire_id', formId)
     .order('created_at', { ascending: false })
 
@@ -197,16 +124,50 @@ async function getInstancesByFormId(formId) {
   return data || []
 }
 
+async function getInstanceById(instanceId) {
+  const client = ensureClient()
+  const { data, error } = await client
+    .from('instances')
+    .select('id, formulaire_id, donnees_json, nom, user_id, created_at')
+    .eq('id', instanceId)
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+/**
+ * Supprime une instance par son ID.
+ * La RLS côté Supabase vérifie que user_id = auth.uid().
+ */
+async function deleteInstance(instanceId) {
+  const client = ensureClient()
+  const { error } = await client
+    .from('instances')
+    .delete()
+    .eq('id', instanceId)
+
+  if (error) throw error
+  return true
+}
+
+// ─── Gabarits (intégrés dans schema_json.templates) ────────────
+
+/**
+ * Récupère les gabarits depuis le schema_json d'un formulaire.
+ */
+function getTemplatesFromForm(form) {
+  return form?.schema_json?.templates || []
+}
+
 export default {
   getForms,
+  getFormById,
   createForm,
   updateForm,
-  getFormById,
-  getFormTemplates,
-  getFormIdsWithTemplate,
-  createTemplate,
-  updateTemplate,
-  linkFormTemplate,
   createInstance,
-  getInstancesByFormId
+  getInstancesByFormId,
+  getInstanceById,
+  deleteInstance,
+  getTemplatesFromForm
 }

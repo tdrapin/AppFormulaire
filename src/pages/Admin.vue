@@ -2,7 +2,7 @@
   <div class="af-page admin-container">
     <section class="section-header">
       <h1>Espace de gestion</h1>
-      <p class="lead">Rendu Mustache et export PDF des instances</p>
+      <p class="lead">Export PDF des instances</p>
     </section>
 
     <div v-if="globalError" class="alert alert-danger">{{ globalError }}</div>
@@ -42,64 +42,78 @@
         <h5 class="mb-0">Préparation du document</h5>
       </div>
       <div class="card-body row g-3">
-        <div class="col-md-12">
+        <div class="col-md-6">
           <label class="form-label">Formulaire</label>
           <select v-model="selectedFormId" class="form-select">
-            <option value="">Choisir...</option>
-            <option
-              v-for="form in forms"
-              :key="form.id"
-              :value="form.id"
-              :disabled="!form.hasTemplate"
-            >
-              {{ form.nom }}{{ form.hasTemplate ? '' : ' (incomplet)' }}
+            <option value="">Choisir…</option>
+            <option v-for="form in forms" :key="form.id" :value="form.id">
+              {{ form.nom }}
             </option>
           </select>
         </div>
-        <div class="col-md-12" v-if="incompleteForms.length">
-          <span class="badge text-bg-warning me-2">Incomplet</span>
-          <span class="text-muted">Sans gabarit : {{ incompleteForms.map(form => form.nom).join(', ') }}</span>
+        <div class="col-md-6">
+          <label class="form-label">Gabarit</label>
+          <select v-model="selectedTemplateId" class="form-select">
+            <option value="">— Gabarit par défaut —</option>
+            <option v-for="t in templates" :key="t.id" :value="t.id">
+              {{ t.name }}
+            </option>
+          </select>
+          <div v-if="!templates.length && selectedFormId" class="form-text text-warning">
+            Aucun gabarit personnalisé — le gabarit par défaut sera utilisé.
+          </div>
         </div>
-        <div class="col-md-12" v-if="selectedFormId">
-          <label class="form-label">Gabarit principal</label>
-          <input
-            class="form-control"
-            :value="selectedTemplate?.nom || 'Aucun gabarit lié'"
-            readonly
-          />
+        <div class="col-md-12">
+          <label class="form-label">Instance à exporter</label>
+          <select v-model="selectedInstanceId" class="form-select">
+            <option value="">Choisir une instance…</option>
+            <option v-for="inst in instances" :key="inst.id" :value="inst.id">
+              {{ inst.nom }} ({{ formatDateShort(inst.created_at) }})
+            </option>
+          </select>
         </div>
       </div>
     </div>
 
     <div class="card mb-4">
       <div class="card-header bg-light d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Aperçu rendu Mustache</h5>
-        <button
-          class="btn btn-primary btn-sm"
-          :disabled="!renderedHtml || isExporting"
-          @click="exportPdf"
-        >
-          {{ isExporting ? 'Export en cours...' : 'Exporter en PDF' }}
-        </button>
+        <h5 class="mb-0">Aperçu du rendu</h5>
+        <div>
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            :disabled="!selectedInstanceId"
+            @click="refreshPreview"
+          >
+            Actualiser
+          </button>
+          <button
+            class="btn btn-primary btn-sm"
+            :disabled="!renderedHtml || isExporting"
+            @click="exportPdf"
+          >
+            {{ isExporting ? 'Export en cours…' : 'Exporter en PDF' }}
+          </button>
+        </div>
       </div>
       <div class="card-body">
         <div v-if="!renderedHtml" class="text-muted">
-          Sélectionnez un formulaire et un gabarit pour générer l'aperçu.
+          Sélectionnez un formulaire, un gabarit et une instance pour générer l'aperçu.
+        </div>
+        <div v-else-if="previewEmpty" class="alert alert-warning mb-3">
+          ⚠️ Le rendu semble vide. Vérifiez que le formulaire contient des champs et des données.
         </div>
         <div v-else class="render-preview border rounded p-3" v-html="renderedHtml"></div>
       </div>
     </div>
-
-    <div ref="pdfContainer" class="pdf-container" v-html="renderedHtml"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
-import Mustache from 'mustache'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import SupabaseDataService from '../lib/services/SupabaseDataService'
 import { isSupabaseConfigured } from '../lib/supabaseClient'
-import { buildPdfFilename, exportHtmlElementToPdf } from '../composables/usePdfExport'
+import { exportHtmlStringToPdf, buildPdfFilename } from '../lib/pdfExportService'
+import { buildPreviewHtml } from '../lib/renderMobileReportPdfHtml'
 
 const forms = ref([])
 const templates = ref([])
@@ -107,46 +121,39 @@ const instances = ref([])
 
 const selectedFormId = ref('')
 const selectedTemplateId = ref('')
+const selectedInstanceId = ref('')
 const renderedHtml = ref('')
+const previewEmpty = ref(false)
 const globalError = ref('')
 const isExporting = ref(false)
-const pdfContainer = ref(null)
 
 const isSupabaseReady = isSupabaseConfigured()
 
 const selectedForm = computed(() =>
-  forms.value.find(form => form.id === selectedFormId.value)
+  forms.value.find(f => f.id === selectedFormId.value)
 )
 
 const selectedTemplate = computed(() =>
-  templates.value.find(template => template.id === selectedTemplateId.value)
+  templates.value.find(t => t.id === selectedTemplateId.value) || null
 )
 
-const incompleteForms = computed(() =>
-  forms.value.filter(form => !form.hasTemplate)
+const selectedInstance = computed(() =>
+  instances.value.find(i => i.id === selectedInstanceId.value) || null
 )
 
-function toRenderableInstances(rows) {
-  return rows.map(row => ({
-    ...row.donnees_json,
-    created_at: row.created_at
-  }))
+function formatDateShort(iso) {
+  try {
+    return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return iso || ''
+  }
 }
 
 async function loadForms() {
   if (!isSupabaseReady) return
   try {
     globalError.value = ''
-    const [allForms, formIdsWithTemplate] = await Promise.all([
-      SupabaseDataService.getForms(),
-      SupabaseDataService.getFormIdsWithTemplate()
-    ])
-
-    const linkedIds = new Set(formIdsWithTemplate)
-    forms.value = allForms.map(form => ({
-      ...form,
-      hasTemplate: linkedIds.has(form.id)
-    }))
+    forms.value = await SupabaseDataService.getForms()
   } catch (error) {
     globalError.value = error.message || 'Erreur lors du chargement des formulaires.'
   }
@@ -154,55 +161,61 @@ async function loadForms() {
 
 async function loadFormData() {
   if (!selectedFormId.value || !isSupabaseReady) return
-
   try {
     globalError.value = ''
     renderedHtml.value = ''
     selectedTemplateId.value = ''
+    selectedInstanceId.value = ''
 
-    const [formTemplates, formInstances] = await Promise.all([
-      SupabaseDataService.getFormTemplates(selectedFormId.value),
-      SupabaseDataService.getInstancesByFormId(selectedFormId.value)
-    ])
-
-    templates.value = formTemplates
-    instances.value = formInstances
-    selectedTemplateId.value = formTemplates[0]?.id || ''
-
-    if (!selectedTemplateId.value) {
-      globalError.value = "Aucun gabarit lié à ce formulaire. Ajoutez une ligne dans formulaire_gabarits."
+    // Charger le formulaire (contient schema_json avec templates)
+    const f = await SupabaseDataService.getFormById(selectedFormId.value)
+    if (!f) {
+      globalError.value = 'Formulaire introuvable.'
+      return
     }
+
+    // Stocker le formulaire pour le rendu
+    selectedFormRef.value = f
+
+    // Récupérer les gabarits depuis schema_json.templates
+    templates.value = SupabaseDataService.getTemplatesFromForm(f)
+
+    // Récupérer les instances
+    instances.value = await SupabaseDataService.getInstancesByFormId(selectedFormId.value)
   } catch (error) {
-    globalError.value = error.message || 'Erreur lors du chargement des données du formulaire.'
+    globalError.value = error.message || 'Erreur lors du chargement des données.'
   }
 }
 
-function buildMustacheContext() {
-  return {
-    layout: selectedForm.value?.schema_json?.layout || {},
-    instances: toRenderableInstances(instances.value)
-  }
-}
+// Référence interne pour le formulaire sélectionné (objet complet)
+const selectedFormRef = ref(null)
 
-function renderTemplate() {
-  if (!selectedTemplate.value || !selectedForm.value) {
+function refreshPreview() {
+  if (!selectedInstance.value || !selectedFormRef.value) {
     renderedHtml.value = ''
+    previewEmpty.value = false
     return
   }
-
-  const mustacheContext = buildMustacheContext()
-  renderedHtml.value = Mustache.render(selectedTemplate.value.merged_html, mustacheContext)
+  const { html, isEmpty } = buildPreviewHtml(
+    selectedInstance.value,
+    selectedFormRef.value,
+    selectedTemplate.value
+  )
+  renderedHtml.value = html
+  previewEmpty.value = isEmpty
 }
 
 async function exportPdf() {
-  if (!pdfContainer.value || !renderedHtml.value) return
-
+  if (!renderedHtml.value) return
   try {
     isExporting.value = true
-    await exportHtmlElementToPdf(
-      pdfContainer.value,
-      buildPdfFilename(selectedForm.value?.nom || 'export')
+    await nextTick()
+
+    const filename = buildPdfFilename(
+      selectedInstance.value?.nom || selectedFormRef.value?.nom || 'export',
+      'export'
     )
+    await exportHtmlStringToPdf(renderedHtml.value, filename)
   } catch (error) {
     globalError.value = error.message || "Erreur pendant l'export PDF."
   } finally {
@@ -213,18 +226,21 @@ async function exportPdf() {
 watch(selectedFormId, async () => {
   templates.value = []
   instances.value = []
-  const form = forms.value.find(item => item.id === selectedFormId.value)
-  if (selectedFormId.value && form && !form.hasTemplate) {
-    globalError.value = 'Ce formulaire est incomplet : aucun gabarit principal lié.'
-    renderedHtml.value = ''
-    selectedTemplateId.value = ''
-    return
+  renderedHtml.value = ''
+  previewEmpty.value = false
+  selectedFormRef.value = null
+  if (selectedFormId.value) {
+    await loadFormData()
   }
-  await loadFormData()
 })
 
-watch(selectedTemplateId, renderTemplate)
-watch(instances, renderTemplate)
+watch(selectedTemplateId, () => {
+  nextTick(refreshPreview)
+})
+
+watch(selectedInstanceId, () => {
+  nextTick(refreshPreview)
+})
 
 onMounted(loadForms)
 </script>

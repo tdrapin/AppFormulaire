@@ -2,7 +2,7 @@
   <div class="mobile-app">
     <router-view v-slot="{ Component }">
       <transition name="m-page" mode="out-in">
-        <component :is="Component" />
+        <component :is="Component" :key="$route.fullPath" />
       </transition>
     </router-view>
   </div>

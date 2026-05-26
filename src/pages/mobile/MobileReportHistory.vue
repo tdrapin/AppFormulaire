@@ -112,12 +112,33 @@
           <span>Aucun formulaire complété ne correspond à "{{ searchQuery }}".</span>
         </div>
 
+        <div v-if="selectedInstances.length" class="m-card m-card--muted" style="margin-bottom: 12px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+            <span>{{ selectedInstances.length }} sélectionné(s)</span>
+            <router-link
+              class="m-btn-sm m-btn-sm--primary"
+              :to="{ name: 'MobileBatchDetail', query: { ids: selectedIdsStr } }"
+              style="text-decoration: none;"
+            >
+              Voir
+            </router-link>
+          </div>
+        </div>
+
         <article v-for="inst in filteredInstances" :key="inst.id" class="m-card">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px">
             <div style="min-width: 0">
-              <h2 class="m-list-card__title">{{ inst.donnees_json?._nom || inst.nom || 'Rapport' }}</h2>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px">
+                <input
+                  type="checkbox"
+                  :checked="selectedIds.has(inst.id)"
+                  @change="toggleSelect(inst.id)"
+                  style="width: 18px; height: 18px; accent-color: var(--m-primary)"
+                />
+                <h2 class="m-list-card__title" style="margin: 0">{{ inst.nom }}</h2>
+              </div>
               <p class="m-list-card__desc" style="margin-bottom: 6px">{{ inst.client || '—' }}</p>
-              <time class="m-question__num" style="color: var(--m-text-muted); font-weight: 500">
+              <time class="m-field__num" style="color: var(--m-text-muted); font-weight: 500">
                 {{ formatDate(inst.created_at) }}
               </time>
             </div>
@@ -130,16 +151,31 @@
               Voir
             </router-link>
             <button
+              v-if="canDelete(inst)"
               type="button"
-              class="m-btn-sm"
-              :disabled="exportingId === inst.id"
-              @click="exportInstancePdf(inst)"
+              class="m-btn-sm m-btn-sm--danger"
+              @click="confirmDeleteInstance(inst)"
             >
-              {{ exportingId === inst.id ? 'PDF…' : 'Exporter' }}
+              <i class="fa-solid fa-trash" /> Supprimer
             </button>
           </div>
         </article>
       </template>
+    </div>
+
+    <!-- Modal confirmation suppression -->
+    <div v-if="deleteTarget" class="tpl-modal-overlay" @click.self="deleteTarget = null">
+      <div class="tpl-modal">
+        <h3>Confirmer la suppression</h3>
+        <p>Êtes-vous sûr de vouloir supprimer <strong>{{ deleteTarget.nom }}</strong> ?</p>
+        <p style="font-size: 0.85rem; color: var(--m-text-muted)">Cette action est irréversible.</p>
+        <div style="display: flex; gap: 10px; margin-top: 16px">
+          <button type="button" class="m-btn m-btn--ghost" style="flex: 1" @click="deleteTarget = null">Annuler</button>
+          <button type="button" class="m-btn" style="flex: 1; background: var(--m-danger); color: #fff" @click="handleDeleteInstance">
+            Supprimer
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -149,23 +185,41 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SupabaseDataService from '../../lib/services/SupabaseDataService'
 import { isSupabaseConfigured } from '../../lib/supabaseClient'
-import { buildPdfFilename, exportHtmlElementToPdf } from '../../composables/usePdfExport'
-import { buildMobileReportPdfHtml } from '../../lib/renderMobileReportPdfHtml'
+import { useAuth } from '../../composables/useAuth'
 
 const route = useRoute()
 const router = useRouter()
+const { user, isTerrain } = useAuth()
 
 const forms = ref([])
 const instances = ref([])
 const loading = ref(true)
 const loadError = ref('')
-const exportingId = ref('')
 const searchQuery = ref('')
 const selectedFormId = ref('')
+const deleteTarget = ref(null)
 
 const selectedForm = computed(() =>
   selectedFormId.value ? forms.value.find(f => f.id === selectedFormId.value) : null
 )
+
+// Sélection multiple pour visualisation groupée
+const selectedIds = ref(new Set())
+
+const selectedInstances = computed(() =>
+  instances.value.filter(r => selectedIds.value.has(r.id))
+)
+
+const selectedIdsStr = computed(() =>
+  Array.from(selectedIds.value).join(',')
+)
+
+function toggleSelect(id: string) {
+  const s = new Set(selectedIds.value)
+  if (s.has(id)) s.delete(id)
+  else s.add(id)
+  selectedIds.value = s
+}
 
 // Compte le nombre d'instances par formulaire
 const instanceCountByForm = computed(() => {
@@ -230,27 +284,6 @@ function formatDate(iso: string) {
   }
 }
 
-async function exportInstancePdf(inst) {
-  const form = forms.value.find(f => f.id === inst.formulaire_id)
-  const wrap = document.createElement('div')
-  wrap.style.cssText =
-    'position:fixed;left:-12000px;top:0;width:210mm;padding:12mm;background:#fff;'
-  wrap.innerHTML = buildMobileReportPdfHtml(inst, form, null)
-  document.body.appendChild(wrap)
-  exportingId.value = inst.id
-  try {
-    await exportHtmlElementToPdf(
-      wrap,
-      buildPdfFilename(inst.donnees_json?._nom || inst.nom || 'rapport', 'rapport')
-    )
-  } catch (e) {
-    window.alert(e?.message || "Impossible d'exporter le PDF.")
-  } finally {
-    document.body.removeChild(wrap)
-    exportingId.value = ''
-  }
-}
-
 async function loadData() {
   loading.value = true
   loadError.value = ''
@@ -277,6 +310,40 @@ async function loadData() {
     instances.value = []
   } finally {
     loading.value = false
+  }
+}
+
+// ─── Suppression d'instance ──────────────────────────────────
+
+/**
+ * Vérifie si l'utilisateur peut supprimer cette instance.
+ * Terrain : uniquement ses propres instances.
+ * Concepteur/Admin : toutes les instances.
+ */
+function canDelete(inst) {
+  if (!user.value) return false
+  // Si l'utilisateur est terrain, il ne peut supprimer que ses propres instances
+  if (isTerrain.value) {
+    return inst.user_id === user.value.id
+  }
+  // Concepteur et admin peuvent supprimer toutes les instances
+  return true
+}
+
+function confirmDeleteInstance(inst) {
+  deleteTarget.value = inst
+}
+
+async function handleDeleteInstance() {
+  if (!deleteTarget.value) return
+  try {
+    await SupabaseDataService.deleteInstance(deleteTarget.value.id)
+    // Retirer l'instance de la liste
+    instances.value = instances.value.filter(i => i.id !== deleteTarget.value.id)
+    deleteTarget.value = null
+    loadError.value = ''
+  } catch (e) {
+    loadError.value = e?.message || 'Erreur lors de la suppression.'
   }
 }
 

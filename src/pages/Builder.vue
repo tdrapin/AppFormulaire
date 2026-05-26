@@ -6,16 +6,16 @@
     </header>
 
     <div class="af-tile-grid">
-      <router-link class="af-tile" :to="{ name: 'MobileFormNew' }">
-        <span class="af-tile__icon af-tile__icon--orange"><i class="fa-solid fa-mobile-screen" /></span>
-        <h2 class="af-tile__title">Concepteur mobile</h2>
+      <router-link class="af-tile" :to="{ name: 'DesignerFormNew' }">
+        <span class="af-tile__icon af-tile__icon--orange"><i class="fa-solid fa-pen-ruler" /></span>
+        <h2 class="af-tile__title">Concepteur</h2>
         <p class="af-tile__desc">Création guidée : questions, types, champs obligatoires.</p>
       </router-link>
 
-      <router-link class="af-tile" :to="{ name: 'MobileFormList' }">
+      <router-link class="af-tile" :to="{ name: 'DesignerFormList' }">
         <span class="af-tile__icon af-tile__icon--purple"><i class="fa-solid fa-list" /></span>
-        <h2 class="af-tile__title">Liste des gabarits</h2>
-        <p class="af-tile__desc">Retour aux formulaires terrain.</p>
+        <h2 class="af-tile__title">Liste des formulaires</h2>
+        <p class="af-tile__desc">Gérer les formulaires, versions et gabarits.</p>
       </router-link>
     </div>
 

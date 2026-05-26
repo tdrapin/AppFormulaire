@@ -6,139 +6,186 @@ Créer une application **mobile-first** pour :
 - saisir des données terrain (instances),
 - générer des documents PDF.
 
-Ce journal décrit le processus fonctionnel de bout en bout, indépendamment de l’implémentation technique.
+---
+
+## Architecture actuelle
+
+### Deux parcours distincts
+
+#### 1) Parcours Terrain (`/mobile`)
+**But :** saisir des données sur le terrain, consulter l'historique, exporter en PDF.
+
+**Pages :**
+- `MobileFormList` — liste des formulaires disponibles pour la saisie
+- `MobileReportFill` — saisie terrain par sections avec validation
+- `MobileReportSummary` — résumé avant enregistrement
+- `MobileReportHistory` — historique des instances avec dossiers par formulaire, recherche, export individuel et groupé
+- `MobileReportDetail` — détail d'une instance avec choix du gabarit et export PDF
+- `MobileBatchDetail` — visualisation groupée de plusieurs instances avec choix du gabarit et export PDF
+
+**Fonctionnalités :**
+- Sélection d'un formulaire → saisie → enregistrement dans Supabase
+- Nom unique horodaté généré automatiquement (ex: `Rapport_2026-05-17_21h00m00`)
+- Export PDF individuel (via `MobileReportDetail`) et **export groupé** (via `MobileBatchDetail`)
+- Barre de recherche dans l'historique
+- Sélection multiple par checkboxes → "Voir" → page groupée avec choix du gabarit → export PDF
+
+#### 2) Parcours Concepteur (`/designer`)
+**But :** créer et gérer les formulaires, leurs versions et leurs gabarits d'export.
+
+**Pages :**
+- `DesignerFormList` — liste des formulaires avec version, nombre de sections/gabarits
+- `DesignerFormBuilder` — création/édition des champs du formulaire
+- `DesignerTemplates` — **page dédiée** à la gestion des gabarits Mustache
+
+**Fonctionnalités :**
+- Création et modification de formulaires (champs typés : texte, date, nombre, zone de texte)
+- Versionnement automatique : toute modification incrémente la version
+- Gabarits stockés dans `schema_json.templates` (propriétés `html`, `css`)
+- Un formulaire peut avoir plusieurs gabarits nommés
+- **Gabarit actif** : un toggle permet de définir quel gabarit est utilisé par défaut pour l'export
+- Page dédiée aux gabarits (pas mélangée avec la création de formulaire)
 
 ---
 
-## Processus complet (version actuelle)
+## Structure des données
 
-### 1) Création d’un formulaire (modèle)
-**But :** définir la structure des champs.
+### Table `formulaires`
+| Colonne | Type | Description |
+|---------|------|-------------|
+| id | uuid | Clé primaire |
+| nom | text | Titre du formulaire |
+| schema_json | jsonb | Structure complète (meta, sections, fields, templates) |
+| gabarit_actif_id | text | ID du gabarit actif (ex: `tpl_xxx`) |
+| version | integer | Numéro de version (incrémenté automatiquement) |
+| created_at | timestamptz | Date de création |
+| updated_at | timestamptz | Date de modification |
 
-**Étapes :**
-1. L’utilisateur ouvre l’interface “Création”.
-2. Il saisit le titre et la description du formulaire.
-3. Il ajoute des sections (ex : Informations, Données techniques).
-4. Dans chaque section, il ajoute des champs typés :
-   - texte
-   - date
-   - nombre
-   - zone de texte
-5. Le formulaire est converti en **schema_json**.
-6. Le formulaire est enregistré dans la table `formulaires`.
-7. Le formulaire peut être modifié : toute modification crée **une nouvelle version** du formulaire.
+### Table `instances`
+| Colonne | Type | Description |
+|---------|------|-------------|
+| id | uuid | Clé primaire |
+| formulaire_id | uuid | Référence au formulaire |
+| nom | text | Nom unique horodaté (ex: `Rapport_2026-05-17_21h00m00`) |
+| donnees_json | jsonb | Réponses saisies |
+| created_at | timestamptz | Date de création |
+| updated_at | timestamptz | Date de modification |
 
-**Sortie :** un enregistrement `formulaires` avec `schema_json` et version.
-
----
-
-### 2) Création / gestion des gabarits
-**But :** définir le modèle visuel de sortie.
-
-**Étapes :**
-1. Le gabarit HTML est créé par un concepteur avec des balises Mustache.
-2. Il est enregistré dans la table `gabarits`.
-3. Le formulaire est lié à un ou plusieurs gabarits via `formulaire_gabarits`.
-4. Un gabarit peut être modifié après création.
-5. Un nouveau gabarit peut être créé à partir d’un gabarit existant (duplication / base de travail).
-
-**Sortie :** gabarits HTML liés à un formulaire.
-
----
-
-### 3) Saisie d’une instance (réponse)
-**But :** enregistrer des données réelles.
-
-**Étapes :**
-1. L’utilisateur sélectionne un formulaire.
-2. Le système génère le formulaire à partir du `schema_json`.
-3. L’utilisateur saisit les valeurs.
-4. Les données sont stockées dans `donnees_json`.
-5. Une instance est créée dans `instances`.
-6. Chaque instance porte un **nom unique** basé sur la date et l’heure pour éviter tout écrasement.
-7. Une instance peut être modifiée après création.
-
-**Sortie :** une ligne `instances` avec `donnees_json` et un nom horodaté.
-
----
-
-### 4) Consultation des instances
-**But :** consulter et exporter les rapports.
-
-**Étapes :**
-1. Les instances sont affichées **individuellement** (pas de regroupement unique).
-2. L’utilisateur peut filtrer par formulaire.
-3. Chaque instance peut être ouverte, exportée en PDF, ou regroupée avec d’autres pour un export multiple.
-
-**Sortie :** consultation claire des instances par formulaire.
+### Structure de `schema_json`
+```json
+{
+  "meta": {
+    "title": "Nom du formulaire",
+    "version": 1,
+    "created_at": "2026-05-17"
+  },
+  "description": "Description du formulaire",
+  "sections": [
+    {
+      "id": "sec_xxx",
+      "title": "Nom de la section",
+      "fields": [
+        {
+          "id": "q_xxx",
+          "label": "Intitulé du champ",
+          "type": "text|date|number|textarea",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "tpl_xxx",
+      "name": "Interne",
+      "html": "<h1>{{_nom}}</h1>...",
+      "css": "body { font-family: sans-serif; }"
+    }
+  ]
+}
+```
 
 ---
 
-### 5) Génération HTML (rendu)
-**But :** fusionner le gabarit et les données.
+## Processus complet
 
-**Étapes :**
-1. Récupérer :
-   - le `schema_json` du formulaire (layout),
-   - le gabarit HTML choisi,
-   - l’instance cible (ou un lot d’instances).
-2. Construire un objet de rendu :
-   - `layout`
-   - `instances`
-3. Appliquer Mustache : `render(template, data)`.
+### 1) Création d'un formulaire (Concepteur)
+1. L'utilisateur ouvre le **Concepteur** (`/designer`)
+2. Il crée un nouveau formulaire avec titre, description, questions typées
+3. Le formulaire est enregistré dans `formulaires` avec `schema_json` et version 1
+4. Il peut modifier le formulaire : la version est incrémentée automatiquement
+5. Il peut gérer les gabarits dans une **page dédiée** (`/designer/forms/:id/templates`)
 
-**Sortie :** un HTML final prêt à être affiché ou exporté.
+### 2) Gestion des gabarits (Concepteur)
+1. Depuis la liste des formulaires, cliquer sur "Gabarits"
+2. Ajouter/modifier/supprimer des gabarits Mustache (nom, HTML, CSS optionnel)
+3. Les gabarits sont stockés dans `schema_json.templates`
+4. Un formulaire peut avoir plusieurs gabarits
+5. **Toggle "Activer"** : un seul gabarit peut être actif à la fois (stocké dans `gabarit_actif_id`)
+6. Le gabarit actif est pré-sélectionné lors de l'export
 
----
+### 3) Saisie d'une instance (Terrain)
+1. L'utilisateur sélectionne un formulaire dans la liste terrain
+2. Le système génère le formulaire à partir du `schema_json`
+3. L'utilisateur saisit les valeurs par sections
+4. Validation des champs obligatoires
+5. Enregistrement dans `instances` avec un nom horodaté unique
 
-### 6) Génération PDF
-**But :** exporter un document final.
+### 4) Consultation des instances (Terrain)
+1. Les instances sont affichées par dossier de formulaire
+2. Barre de recherche pour filtrer
+3. Chaque instance peut être ouverte → page de détail avec choix du gabarit → export PDF
+4. **Export groupé** : sélection multiple par checkboxes → "Voir" → page groupée avec choix du gabarit → export PDF
 
-**Étapes :**
-1. Cibler le HTML généré.
-2. Lancer l’export avec `html2pdf.js`.
-3. Télécharger le PDF.
-
-**Sortie :** document PDF généré côté client.
-
----
-
-## Fonctionnalités attendues (hors authentification)
-- Création, modification et duplication de formulaires
-- Versionnement automatique des formulaires lors d’une modification
-- Création, modification et duplication de gabarits
-- Gestion des gabarits dans une page dédiée (pas d’affichage côté client)
-- Un formulaire peut avoir plusieurs gabarits (un gabarit n’appartient qu’à un formulaire)
-- Création et modification d’instances
-- Nom unique des instances avec horodatage
-- Liste des instances par formulaire
-- Export PDF individuel et export PDF multiple
-- Rendu HTML via Mustache
-- Affichage mobile-first simple et rapide
+### 5) Génération PDF
+1. Récupération du gabarit depuis `schema_json.templates` (ou gabarit par défaut)
+2. Fusion avec les données de l'instance via Mustache
+3. Export via `window.print()` (ouverture d'une nouvelle fenêtre avec le HTML + déclenchement de l'impression)
 
 ---
 
-## Vues attendues
-- **Vue client** :
-  - créer et gérer des formulaires
-  - créer des instances
-  - retrouver les instances par formulaire
-  - exporter les instances (individuel ou groupé)
-- **Vue gabarits** :
-  - créer / modifier / dupliquer les gabarits
-  - associer les gabarits aux formulaires
+## Fonctionnalités implémentées
+- ✅ Authentification utilisateur (email/mot de passe via Supabase Auth)
+- ✅ Trois rôles : **Terrain**, **Concepteur**, **Admin**
+- ✅ Route guards : `/mobile/*` (terrain), `/designer/*` (concepteur/admin)
+- ✅ Barre d'onglets adaptée au rôle
+- ✅ Création, modification de formulaires (Concepteur)
+- ✅ Versionnement automatique des formulaires
+- ✅ Gestion des gabarits dans une page dédiée (Concepteur)
+- ✅ Un formulaire peut avoir plusieurs gabarits
+- ✅ Gabarit actif (toggle + colonne `gabarit_actif_id`)
+- ✅ Création d'instances avec nom horodaté unique
+- ✅ Suppression d'instance (terrain : uniquement ses propres instances)
+- ✅ Liste des instances par formulaire (dossiers)
+- ✅ Barre de recherche dans l'historique
+- ✅ Export PDF individuel (avec choix du gabarit)
+- ✅ Export PDF groupé (sélection multiple → visualisation → choix gabarit → export)
+- ✅ Rendu HTML via Mustache
+- ✅ Validation des champs obligatoires
+- ✅ Affichage mobile-first
+- ✅ Deux parcours distincts (Terrain / Concepteur)
+- ✅ Page Outils commune (profil, paramètres, déconnexion)
+- ✅ Gestion des comptes (admin) : création, modification, suppression d'utilisateurs
+- ✅ Navigation claire depuis l'accueil
+
+## Fonctionnalités à venir
+- ⬜ Duplication de formulaires
+- ⬜ Duplication de gabarits
+- ⬜ Édition des instances existantes
+- ⬜ Filtres avancés dans l'historique
 
 ---
 
-## Périmètre actuel
-- Application mobile (smartphone)
-- Pas d’authentification utilisateur pour l’instant
-- Export PDF côté client uniquement
+## Périmètre
+- Application mobile (smartphone) et responsive desktop
+- Authentification utilisateur via Supabase Auth (3 rôles)
+- Export PDF côté client uniquement (via `window.print()`)
+- Base de données Supabase
 
----
-
-## Prochaines étapes prévues
-1. Finaliser l’interface mobile
-2. Intégrer l’export PDF (individuel + groupé)
-3. Ajouter validation minimale des champs
-4. Préparer la phase authentification (plus tard)
+## Utilisateurs de test
+Trois comptes de test sont disponibles (voir `supabase-seed-users.sql`) :
+| Email | Mot de passe | Rôle |
+|-------|-------------|------|
+| terrain@test.com | password123 | Terrain |
+| concepteur@test.com | password123 | Concepteur |
+| admin@test.com | password123 | Administrateur |

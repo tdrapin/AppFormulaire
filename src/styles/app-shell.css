@@ -1,23 +1,56 @@
 /**
- * Coque applicative — style « logistics / terrain » (orange, cartes arrondies)
- * Onglets bas modernes, sans barre de navigation classique en haut.
+ * Coque applicative — design system inspiré de la page de login
+ * Fond clair #f8f9fc, cartes glassmorphism, dégradés multi-couleurs
+ *
+ * Palette :
+ *   Terrain    → vert  (#10b981 / #059669)
+ *   Concepteur → bleu  (#3b82f6 / #2563eb)
+ *   Admin      → violet (#8b5cf6 / #7c3aed)
  */
 :root {
-  --af-accent: #ff7a00;
-  --af-accent-hover: #e86e00;
-  --af-accent-soft: rgba(255, 122, 0, 0.12);
-  --af-peach: #fff5ed;
-  --af-peach-deep: #ffe8d4;
-  --af-surface: #ffffff;
-  --af-bg: #fafafa;
-  --af-text: #141414;
-  --af-muted: #6b6b6b;
-  --af-border: #ebebeb;
-  --af-radius: 16px;
+  /* ─── Thème Terrain (vert) ─── */
+  --af-accent: #10b981;
+  --af-accent-hover: #059669;
+  --af-accent-soft: rgba(16, 185, 129, 0.12);
+  --af-peach: #ecfdf5;
+  --af-peach-deep: #d1fae5;
+  --af-surface: rgba(255, 255, 255, 0.85);
+  --af-bg: #f8f9fc;
+  --af-text: #1e293b;
+  --af-muted: #64748b;
+  --af-border: #e2e8f0;
+  --af-radius: 20px;
+  --af-radius-sm: 12px;
   --af-radius-pill: 999px;
   --af-tab-h: 64px;
-  --af-shadow: 0 2px 12px rgba(20, 20, 20, 0.06);
-  --af-shadow-up: 0 -8px 32px rgba(20, 20, 20, 0.08);
+  --af-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+  --af-shadow-up: 0 -8px 32px rgba(0, 0, 0, 0.06);
+}
+
+/* ─── Thème Concepteur (bleu) ─── */
+.theme-concepteur {
+  --af-accent: #3b82f6;
+  --af-accent-hover: #2563eb;
+  --af-accent-soft: rgba(59, 130, 246, 0.12);
+  --af-peach: #eff6ff;
+  --af-peach-deep: #dbeafe;
+  /* Synchroniser les variables mobile-ui */
+  --m-accent: #3b82f6;
+  --m-accent-soft: rgba(59, 130, 246, 0.14);
+  --m-accent-dark: #2563eb;
+}
+
+/* ─── Thème Admin (violet) ─── */
+.theme-admin {
+  --af-accent: #8b5cf6;
+  --af-accent-hover: #7c3aed;
+  --af-accent-soft: rgba(139, 92, 246, 0.12);
+  --af-peach: #f5f3ff;
+  --af-peach-deep: #ede9fe;
+  /* Synchroniser les variables mobile-ui */
+  --m-accent: #8b5cf6;
+  --m-accent-soft: rgba(139, 92, 246, 0.14);
+  --m-accent-dark: #7c3aed;
 }
 
 html,
@@ -30,8 +63,48 @@ body {
   margin: 0;
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--af-text);
-  background: var(--af-bg);
+  background: #ffffff;
   -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Orbs de fond (comme la page login) ─── */
+.app-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.app-bg__orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.25;
+}
+
+.app-bg__orb--terrain {
+  width: 50vmax;
+  height: 50vmax;
+  bottom: -15vmax;
+  left: -15vmax;
+  background: radial-gradient(circle, #10b981 0%, #059669 60%, transparent 100%);
+}
+
+.app-bg__orb--concepteur {
+  width: 45vmax;
+  height: 45vmax;
+  top: -12vmax;
+  right: -12vmax;
+  background: radial-gradient(circle, #3b82f6 0%, #2563eb 60%, transparent 100%);
+}
+
+.app-bg__orb--admin {
+  width: 40vmax;
+  height: 40vmax;
+  bottom: -8vmax;
+  right: -8vmax;
+  background: radial-gradient(circle, #8b5cf6 0%, #7c3aed 60%, transparent 100%);
 }
 
 .app-shell {
@@ -39,6 +112,7 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
+  z-index: 1;
 }
 
 .app-main {
@@ -48,6 +122,8 @@ body {
   margin: 0 auto;
   padding: 16px;
   padding-bottom: 24px;
+  position: relative;
+  z-index: 1;
 }
 
 .app-shell--with-tabs .app-main {
@@ -78,9 +154,12 @@ body {
   pointer-events: auto;
   width: 100%;
   max-width: 480px;
-  background: linear-gradient(180deg, var(--af-peach-deep) 0%, var(--af-peach) 40%, #fff 100%);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 22px 22px 0 0;
   box-shadow: var(--af-shadow-up);
+  border-top: 1px solid rgba(255, 255, 255, 0.6);
   padding: 6px 8px calc(10px + env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: stretch;
@@ -156,8 +235,8 @@ body {
 .af-page .section-header h1,
 .af-page h1 {
   font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   margin: 0 0 6px;
   color: var(--af-text);
 }
@@ -170,7 +249,10 @@ body {
 }
 
 .af-page .card {
-  border: 1px solid var(--af-border);
+  background: var(--af-surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: var(--af-radius);
   box-shadow: var(--af-shadow);
   overflow: hidden;
@@ -178,7 +260,7 @@ body {
 }
 
 .af-page .card-header {
-  background: var(--af-surface) !important;
+  background: transparent !important;
   color: var(--af-text) !important;
   border-bottom: 1px solid var(--af-border);
   font-weight: 700;
@@ -190,7 +272,7 @@ body {
 .af-page .card-header.bg-dark,
 .af-page .card-header.bg-light,
 .af-page .card-header.bg-success {
-  background: var(--af-surface) !important;
+  background: transparent !important;
   color: var(--af-text) !important;
   border-left: 4px solid var(--af-accent);
 }
@@ -208,48 +290,68 @@ body {
 
 .af-page .btn-primary {
   background: var(--af-accent) !important;
-  border-color: var(--af-accent) !important;
-  border-radius: var(--af-radius-pill) !important;
-  font-weight: 600;
-  padding: 10px 20px;
+  border: none !important;
+  border-radius: 14px !important;
+  font-weight: 700;
+  padding: 12px 24px;
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: transform 0.12s, box-shadow 0.12s;
 }
 
 .af-page .btn-primary:hover {
   background: var(--af-accent-hover) !important;
-  border-color: var(--af-accent-hover) !important;
+  transform: scale(1.02);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.af-page .btn-primary:active {
+  transform: scale(0.98);
 }
 
 .af-page .btn-success {
-  border-radius: var(--af-radius-pill) !important;
+  border-radius: 14px !important;
   font-weight: 600;
 }
 
 .af-page .btn-outline-secondary {
-  border-radius: var(--af-radius-pill) !important;
+  border-radius: 14px !important;
 }
 
 .af-page .form-control,
 .af-page .form-select {
-  border-radius: 12px;
-  border-color: var(--af-border);
+  border: 1.5px solid var(--af-border);
+  border-radius: var(--af-radius-sm);
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  background: #fff;
+  color: var(--af-text);
+}
+
+.af-page .form-control:focus,
+.af-page .form-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
 .af-page .alert {
-  border-radius: 12px;
+  border-radius: var(--af-radius-sm);
   border: none;
 }
 
 .af-page .metric-box {
   border-radius: 14px;
-  border: 1px solid var(--af-border);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   background: var(--af-surface);
+  backdrop-filter: blur(12px);
   box-shadow: var(--af-shadow);
 }
 
 /* Hub & segmented */
 .af-segment {
   display: flex;
-  background: var(--af-peach);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
   border-radius: var(--af-radius-pill);
   padding: 4px;
   gap: 4px;
@@ -272,7 +374,7 @@ body {
 }
 
 .af-segment__item--active {
-  background: var(--af-surface);
+  background: #fff;
   color: var(--af-text);
   box-shadow: var(--af-shadow);
 }
@@ -285,8 +387,10 @@ body {
 
 .af-tile {
   background: var(--af-surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: var(--af-radius);
-  border: 1px solid var(--af-border);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow: var(--af-shadow);
   padding: 16px 14px;
   text-decoration: none;
@@ -319,13 +423,13 @@ body {
 }
 
 .af-tile__icon--purple {
-  background: rgba(124, 58, 237, 0.12);
-  color: #7c3aed;
+  background: rgba(139, 92, 246, 0.12);
+  color: #8b5cf6;
 }
 
 .af-tile__icon--green {
   background: rgba(16, 185, 129, 0.12);
-  color: #059669;
+  color: #10b981;
 }
 
 .af-tile__icon--slate {

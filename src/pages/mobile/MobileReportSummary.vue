@@ -17,9 +17,9 @@
         <div class="m-card" style="display: flex; gap: 16px; align-items: center">
           <div class="m-hero-doc" aria-hidden="true" />
           <div style="flex: 1; min-width: 0">
-            <h2 class="m-list-card__title" style="margin-bottom: 4px">{{ form.schema_json?.titre || form.nom }}</h2>
+            <h2 class="m-list-card__title" style="margin-bottom: 4px">{{ form.schema_json?.meta?.title || form.schema_json?.titre || form.nom }}</h2>
             <p class="m-list-card__desc" style="margin-bottom: 0">
-              {{ sectionCount }} section(s) · {{ questionCount }} question(s)
+              {{ sectionCount }} section(s) · {{ questionCount }} champ(s)
             </p>
           </div>
         </div>
@@ -29,8 +29,8 @@
             <span class="m-step-badge">{{ sectionLabel(sec) }}</span>
             <h2>{{ sec.titre }}</h2>
           </div>
-          <div v-for="c in sec.champs || []" :key="c.id" style="margin-bottom: 12px">
-            <div class="m-question__num">{{ c.label }}</div>
+          <div v-for="c in sec.fields || sec.champs || []" :key="c.id" style="margin-bottom: 12px">
+            <div class="m-field__num">{{ c.label }}</div>
             <p style="margin: 4px 0 0; font-size: 0.95rem; word-break: break-word">
               {{ displayAnswer(c.id) }}
             </p>
@@ -41,7 +41,7 @@
 
     <div v-if="!banner && form && Object.keys(answers).length" class="m-footer-actions">
       <button type="button" class="m-btn m-btn--primary" :disabled="busy" @click="generate">
-        {{ busy ? 'Enregistrement…' : 'Enregistrer le rapport' }}
+        {{ busy ? 'Enregistrement…' : 'Enregistrer' }}
       </button>
     </div>
   </div>
@@ -66,7 +66,7 @@ const formId = computed(() => route.params.formId as string)
 const sections = computed(() => form.value?.schema_json?.sections || [])
 
 const questionCount = computed(() =>
-  sections.value.reduce((n, s) => n + (s.champs || []).length, 0)
+  sections.value.reduce((n, s) => n + (s.fields || s.champs || []).length, 0)
 )
 
 const sectionCount = computed(() => sections.value.length)
