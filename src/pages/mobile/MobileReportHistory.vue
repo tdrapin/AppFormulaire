@@ -164,10 +164,16 @@
     </div>
 
     <!-- Modal confirmation suppression -->
-    <div v-if="deleteTarget" class="tpl-modal-overlay" @click.self="deleteTarget = null">
-      <div class="tpl-modal">
-        <h3>Confirmer la suppression</h3>
-        <p>Êtes-vous sûr de vouloir supprimer <strong>{{ deleteTarget.nom }}</strong> ?</p>
+    <div v-if="deleteTarget" class="m-modal-overlay" @click.self="deleteTarget = null">
+      <div
+        class="m-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-instance-title"
+        aria-describedby="delete-instance-desc"
+      >
+        <h3 id="delete-instance-title">Confirmer la suppression</h3>
+        <p id="delete-instance-desc">Êtes-vous sûr de vouloir supprimer <strong>{{ deleteTarget.nom }}</strong> ?</p>
         <p style="font-size: 0.85rem; color: var(--m-text-muted)">Cette action est irréversible.</p>
         <div style="display: flex; gap: 10px; margin-top: 16px">
           <button type="button" class="m-btn m-btn--ghost" style="flex: 1" @click="deleteTarget = null">Annuler</button>
@@ -187,17 +193,37 @@ import SupabaseDataService from '../../lib/services/SupabaseDataService'
 import { isSupabaseConfigured } from '../../lib/supabaseClient'
 import { useAuth } from '../../composables/useAuth'
 
+type FormRow = {
+  id: string
+  nom: string
+}
+
+type InstanceRow = {
+  id: string
+  formulaire_id: string
+  nom: string
+  user_id: string | null
+  created_at: string
+  client?: string | null
+}
+
 const route = useRoute()
 const router = useRouter()
 const { user, isTerrain } = useAuth()
 
-const forms = ref([])
-const instances = ref([])
+type AuthUserLike = {
+  id: string
+}
+
+const currentUserId = computed(() => (user.value as AuthUserLike | null)?.id ?? null)
+
+const forms = ref<FormRow[]>([])
+const instances = ref<InstanceRow[]>([])
 const loading = ref(true)
 const loadError = ref('')
 const searchQuery = ref('')
 const selectedFormId = ref('')
-const deleteTarget = ref(null)
+const deleteTarget = ref<InstanceRow | null>(null)
 
 const selectedForm = computed(() =>
   selectedFormId.value ? forms.value.find(f => f.id === selectedFormId.value) : null
@@ -223,7 +249,7 @@ function toggleSelect(id: string) {
 
 // Compte le nombre d'instances par formulaire
 const instanceCountByForm = computed(() => {
-  const counts = {}
+  const counts: Record<string, number> = {}
   for (const inst of instances.value) {
     counts[inst.formulaire_id] = (counts[inst.formulaire_id] || 0) + 1
   }
@@ -259,7 +285,7 @@ const filteredInstances = computed(() => {
   return list
 })
 
-function selectForm(f) {
+function selectForm(f: FormRow) {
   selectedFormId.value = f.id
   searchQuery.value = ''
 }
@@ -305,7 +331,7 @@ async function loadData() {
     }
     instances.value = allInstances
   } catch (e) {
-    loadError.value = e?.message || 'Erreur lors du chargement.'
+    loadError.value = e instanceof Error ? e.message : 'Erreur lors du chargement.'
     forms.value = []
     instances.value = []
   } finally {
@@ -320,30 +346,31 @@ async function loadData() {
  * Terrain : uniquement ses propres instances.
  * Concepteur/Admin : toutes les instances.
  */
-function canDelete(inst) {
-  if (!user.value) return false
+function canDelete(inst: InstanceRow) {
+  if (!currentUserId.value) return false
   // Si l'utilisateur est terrain, il ne peut supprimer que ses propres instances
   if (isTerrain.value) {
-    return inst.user_id === user.value.id
+    return inst.user_id === currentUserId.value
   }
   // Concepteur et admin peuvent supprimer toutes les instances
   return true
 }
 
-function confirmDeleteInstance(inst) {
+function confirmDeleteInstance(inst: InstanceRow) {
   deleteTarget.value = inst
 }
 
 async function handleDeleteInstance() {
   if (!deleteTarget.value) return
   try {
-    await SupabaseDataService.deleteInstance(deleteTarget.value.id)
+    const instanceId = deleteTarget.value.id
+    await SupabaseDataService.deleteInstance(instanceId)
     // Retirer l'instance de la liste
-    instances.value = instances.value.filter(i => i.id !== deleteTarget.value.id)
+    instances.value = instances.value.filter(i => i.id !== instanceId)
     deleteTarget.value = null
     loadError.value = ''
   } catch (e) {
-    loadError.value = e?.message || 'Erreur lors de la suppression.'
+    loadError.value = e instanceof Error ? e.message : 'Erreur lors de la suppression.'
   }
 }
 

@@ -237,6 +237,42 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ===== Modale (pop-up) ===== */
+.m-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  animation: m-fade-in 0.15s ease;
+}
+
+.m-modal {
+  width: 100%;
+  max-width: 420px;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  box-shadow: var(--m-shadow-card);
+  padding: 20px;
+  animation: m-fade-in 0.2s ease;
+}
+
+.m-modal h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.m-modal p {
+  margin: 0 0 8px;
+}
+
 /* ===== Bannières ===== */
 .m-banner-error {
   background: #fef2f2;

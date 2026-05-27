@@ -12,6 +12,8 @@
   --af-accent: #10b981;
   --af-accent-hover: #059669;
   --af-accent-soft: rgba(16, 185, 129, 0.12);
+  /* Onglets bas : couleur identique quel que soit le rôle */
+  --af-tabs-accent: #10b981;
   --af-peach: #ecfdf5;
   --af-peach-deep: #d1fae5;
   --af-surface: rgba(255, 255, 255, 0.85);
@@ -206,7 +208,7 @@ body {
 }
 
 .app-tab--active .app-tab__indicator {
-  background: var(--af-accent);
+  background: var(--af-tabs-accent);
 }
 
 .app-tab__icon {
@@ -216,7 +218,7 @@ body {
 }
 
 .app-tab--active .app-tab__icon {
-  color: var(--af-accent);
+  color: var(--af-tabs-accent);
 }
 
 .app-tab__label {

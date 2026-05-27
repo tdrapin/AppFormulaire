@@ -167,13 +167,11 @@ const routes = [
       {
         path: 'tools',
         name: 'MobileTools',
-        meta: { hideBottomNav: true },
         component: () => import('../pages/tools/ToolsHome.vue')
       },
       {
         path: 'tools/settings',
         name: 'MobileToolsSettings',
-        meta: { hideBottomNav: true },
         component: () => import('../pages/tools/ToolsSettings.vue')
       }
     ]
