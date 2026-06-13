@@ -65,15 +65,20 @@ body {
   margin: 0;
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--af-text);
-  background: #ffffff;
+  background: var(--af-bg);
   -webkit-font-smoothing: antialiased;
+}
+
+.app-shell {
+  background: var(--af-bg);
 }
 
 /* ─── Orbs de fond (comme la page login) ─── */
 .app-bg {
+  display: none;
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
   overflow: hidden;
 }
@@ -150,6 +155,8 @@ body {
   display: flex;
   justify-content: center;
   pointer-events: none;
+  background: var(--af-bg);
+  overflow: hidden;
 }
 
 .app-bottom-tabs__inner {
